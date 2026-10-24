@@ -1,0 +1,15 @@
+{
+  "startCommand": "bash start.sh",
+  "frontendHttpStatus": 200,
+  "backendHttpStatus": 200,
+  "health": {
+    "status": "browser-unavailable",
+    "detail": "Chromium failed to start. Install Playwright Chromium and use a non-root environment with Chromium sandbox support. See README troubleshooting.",
+    "allowedHosts": [
+      "example.com",
+      "www.example.com"
+    ],
+    "schemaVersion": "0.1"
+  },
+  "note": "HTTP serving tested; browser unavailable means inspection acceptance has failed."
+}

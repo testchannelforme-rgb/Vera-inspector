@@ -1,0 +1,257 @@
+{
+  "$defs": {
+    "AnimationInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "detected": {
+          "title": "Detected",
+          "type": "boolean"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "active": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Active",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "hover": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hover"
+        }
+      },
+      "required": [
+        "detected",
+        "metadata",
+        "active"
+      ],
+      "title": "AnimationInfo",
+      "type": "object"
+    },
+    "ElementInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "referenceId": {
+          "title": "Referenceid",
+          "type": "string"
+        },
+        "tagName": {
+          "title": "Tagname",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "classes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Classes",
+          "type": "array"
+        },
+        "selector": {
+          "title": "Selector",
+          "type": "string"
+        },
+        "selectorUnique": {
+          "title": "Selectorunique",
+          "type": "boolean"
+        },
+        "selectorScope": {
+          "title": "Selectorscope",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "html": {
+          "title": "Html",
+          "type": "string"
+        },
+        "htmlTruncated": {
+          "title": "Htmltruncated",
+          "type": "boolean"
+        },
+        "accessibility": {
+          "additionalProperties": true,
+          "title": "Accessibility",
+          "type": "object"
+        }
+      },
+      "required": [
+        "referenceId",
+        "tagName",
+        "id",
+        "classes",
+        "selector",
+        "selectorUnique",
+        "selectorScope",
+        "text",
+        "html",
+        "htmlTruncated",
+        "accessibility"
+      ],
+      "title": "ElementInfo",
+      "type": "object"
+    },
+    "Geometry": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "width": {
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "title": "Height",
+          "type": "number"
+        },
+        "top": {
+          "title": "Top",
+          "type": "number"
+        },
+        "right": {
+          "title": "Right",
+          "type": "number"
+        },
+        "bottom": {
+          "title": "Bottom",
+          "type": "number"
+        },
+        "left": {
+          "title": "Left",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height",
+        "top",
+        "right",
+        "bottom",
+        "left"
+      ],
+      "title": "Geometry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1",
+      "default": "0.1",
+      "title": "Schemaversion",
+      "type": "string"
+    },
+    "capturedAt": {
+      "title": "Capturedat",
+      "type": "string"
+    },
+    "source": {
+      "additionalProperties": true,
+      "title": "Source",
+      "type": "object"
+    },
+    "element": {
+      "$ref": "#/$defs/ElementInfo"
+    },
+    "geometry": {
+      "$ref": "#/$defs/Geometry"
+    },
+    "styles": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Styles",
+      "type": "object"
+    },
+    "styleGroups": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Stylegroups",
+      "type": "object"
+    },
+    "pseudoElements": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Pseudoelements",
+      "type": "object"
+    },
+    "customProperties": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Customproperties",
+      "type": "object"
+    },
+    "animations": {
+      "$ref": "#/$defs/AnimationInfo"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "capturedAt",
+    "source",
+    "element",
+    "geometry",
+    "styles",
+    "styleGroups",
+    "pseudoElements",
+    "customProperties",
+    "animations",
+    "limitations"
+  ],
+  "title": "Inspection",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:veyra:inspection:0.1"
+}
