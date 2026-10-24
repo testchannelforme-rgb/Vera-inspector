@@ -9,3 +9,11 @@ frontend/dist/
 !.env.example
 artifacts/generated/
 *.log
+
+.venv
+.veyra-runtime/
+.v02-backups/
+
+node_modules/
+veyra-v02-update/
+Veyra_Inspector_V0.2.zip

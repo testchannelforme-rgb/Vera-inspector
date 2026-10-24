@@ -1,16 +1,17 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {overlayStyle,toViewport} from '../coordinates.js';
 
-export default function Preview({frame,inspection,busy,onSelect,onScroll}) {
+export default function Preview({frame,inspection,busy,onSelect,onScroll,onImageError}) {
   const image=useRef(null),gesture=useRef(null),actions=useRef({});
   const [decodedFrame,setDecodedFrame]=useState(null);
   const frameId=frame?.frameId;
+  const imageError=useRef(onImageError);imageError.current=onImageError;
   const waitingForImage=!!frame && decodedFrame!==frameId;
   const disabled=busy||waitingForImage;
   actions.current={onScroll,busy:disabled,frame};
   useEffect(()=>{
     let cancelled=false;
-    if(image.current&&frameId) image.current.decode().then(()=>{if(!cancelled)setDecodedFrame(frameId);}).catch(()=>{});
+    if(image.current&&frameId) image.current.decode().then(()=>{if(!cancelled)setDecodedFrame(frameId);}).catch(()=>{if(!cancelled){setDecodedFrame(frameId);imageError.current?.('Screenshot reached the frontend but could not be decoded. Refresh the image.');}});
     return()=>{cancelled=true;};
   },[frameId]);
   useEffect(()=>{

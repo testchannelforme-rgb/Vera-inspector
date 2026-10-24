@@ -51,3 +51,13 @@ If the corner still hovers the element, the baseline is explicitly flagged. The 
 - [Playwright Docker: non-root user and Chromium sandbox profile](https://playwright.dev/python/docs/docker)
 
 These references informed implementation choices. The delivery test report, not documentation, determines what was actually verified in this environment.
+
+## V0.2 changes (supersede V0.1 network/startup descriptions above)
+
+The public path uses a separate Node Playwright launchServer and a dedicated egress gateway. The Python client attaches without `expose_network` so it never bridges its own private network into the browser. Full Chromium is explicitly selected on both paths, sandbox enabled. The browser's kernel OUTPUT firewall enforces the gateway as its only new outbound TCP destination. The server control path is unguessable and never host-published. The app checks trusted readiness metadata before attaching. Container behavior was not verified here.
+
+`POST /api/normalize` accepts `{url}` and returns the canonical URL. The frontend uses this one authoritative normalizer; `POST /sessions` also applies it through the network policy. `POST /api/browser/retry` retries the engine only when live sessions can be preserved; stale disconnected contexts are first disposed. `/health` adds `version`, `networkMode` and structured startup diagnostics.
+
+Frames add a `diagnostics` object. Errors may add `code` and safe `diagnostics`; existing `detail` is preserved. Inspection schemaVersion remains 0.1 and the selection-coordinate convention is unchanged. New diagnostic categories include navigation-timeout, website-blocked-or-inaccessible, loaded-empty, screenshot-failure, response-transfer-failure and browser-engine-failure. No computed values are synthesized.
+
+Readiness waits up to 5 seconds for content and a bounded network-quiet period, with a minimum 2-second early-success window and a bounded font wait. Canvas/SPA readiness remains heuristic. CSS/CSP/access-control enforcement remains enabled. Console CSP errors are categorized without exporting raw console text.

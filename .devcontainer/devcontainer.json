@@ -1,13 +1,14 @@
 {
-  "name": "Veyra Inspector",
-  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
-  "features": {"ghcr.io/devcontainers/features/node:1": {"version": "22"}},
-  "containerUser": "vscode",
-  "remoteUser": "vscode",
+  "name": "Veyra Inspector V0.2",
+  "build": {"dockerfile":"Dockerfile","context":".."},
+  "features": {"ghcr.io/devcontainers/features/docker-in-docker:2":{}},
+  "containerUser": "node",
+  "remoteUser": "node",
   "init": true,
-  "runArgs": ["--security-opt", "seccomp=${localWorkspaceFolder}/.devcontainer/seccomp_profile.json", "--shm-size=512m", "--memory=2g", "--cpus=2"],
+  "runArgs": ["--security-opt", "seccomp=${localWorkspaceFolder}/.devcontainer/seccomp_profile.json", "--shm-size=512m"],
   "forwardPorts": [8000],
   "portsAttributes": {"8000": {"label": "Veyra Inspector", "onAutoForward": "notify", "visibility": "private"}},
-  "postCreateCommand": "bash scripts/setup.sh --system-deps",
+  "postCreateCommand": "bash scripts/setup.sh",
+  "postStartCommand": "bash scripts/doctor.sh --environment-only",
   "customizations": {"vscode": {"extensions": ["ms-python.python"]}}
 }

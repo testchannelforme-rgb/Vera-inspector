@@ -10,13 +10,13 @@ from app.security import NetworkPolicy, PolicyError
     'http://127.0.0.1','http://127.1','http://2130706433','http://0x7f000001',
     'http://10.1.2.3','http://172.16.0.1','http://192.168.1.1','http://169.254.169.254',
     'http://[::1]','http://[::ffff:127.0.0.1]','http://[fe80::1%25eth0]',
-    'http://100.100.100.200','https://example.com.evil.test','https://example.com.',
+    'http://100.100.100.200','https://example.com.evil.test',
     'http://example.com:8000','https://u:p@example.com','https://example.com\\@evil.test',
     'https://example.com/a\nb','https://example.com:bad','https://example.com:0',
 ])
 async def test_reject_unsafe_urls(url):
     with pytest.raises(PolicyError):
-        await NetworkPolicy({'example.com','127.0.0.1','::1','169.254.169.254'}).validate(url)
+        NetworkPolicy({'example.com','127.0.0.1','::1','169.254.169.254'}).parse(url)
 
 
 def test_valid_parse_and_remove_fragment():

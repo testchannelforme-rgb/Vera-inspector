@@ -12,7 +12,9 @@ from app.config import Settings
 pytestmark=pytest.mark.browser
 
 
-async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site):
+async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,monkeypatch):
+    from app.security import normalize_url
+    monkeypatch.setattr("app.main.normalize_url",lambda value:value if value.startswith(fixture_site+"/") else normalize_url(value))
     manager=browser_manager
     # The fixture already started the real manager; prevent lifespan from launching twice.
     original_start=manager.start

@@ -1,84 +1,103 @@
-# Veyra Inspector V0.1 — delivery verification
+# Veyra Inspector V0.2 — change and verification report
 
-Date: 24 October 2026 (IST).
+24 October 2026 (IST).
 
-**Milestone 01 is NOT complete.** Source for the prototype is implemented, but essential real-browser acceptance is blocked in this execution host. The report distinguishes code present from behavior verified.
+**Mission 02 success criterion is not verified complete.** The incremental implementation and tests are supplied, but this host cannot launch sandboxed Chromium and has no Docker. Public V0.2 rendering, Roblox compatibility, the isolated firewall and Codespaces rebuild/resume behavior remain unverified.
 
-## Actual execution results
+## Source and repository status
 
-| Check | Result |
+The authorized GitHub connection returned no accessible repositories. Fetching `testchannelforme-rgb/Vera-inspector` returned 404. No remote repository was modified; no branch, commit, PR, deployment or Codespace was created remotely. Development continued on the retained delivered V0.1 source, as permitted by the requested fallback. The generated update includes a baseline-aware three-way merge/check tool so it will not silently overwrite newer repository edits.
+
+The user's reported prior Codespaces success with V0.1/example.com is accepted as user-provided history. It is not reported as a V0.2 test performed here.
+
+## Implemented features
+
+- A single authoritative smart URL normalizer shared by frontend/API, with HTTPS defaults, canonical hosts/ports/IPv6/IDNs and clear malformed/unsupported-address errors.
+- Optional isolated public mode without per-host allowlisting: separate sandboxed Chromium, validating/pinning egress proxy, kernel outbound firewall, private control capability, resource limits and startup network probes. Restricted local mode remains. Missing isolation configuration fails closed.
+- Public IPv4/IPv6 validation, mixed-DNS rejection, alternate IPv4 rejection, mapped/transition/NAT64 handling, metadata rejection, repeated DNS validation and numeric-IP connection pinning. Redirects and subresources cannot rely only on initial URL validation.
+- Bounded SPA readiness/content/font/network observations, HTTP/resource status diagnostics, failed requests, safe console/CSP/JavaScript categories and explicit screenshot/transfer errors. HTTPS public API POSTs are no longer rejected merely because they are POSTs; unsupported operations and oversized bodies remain restricted.
+- Full Chromium channel and pinned client/server versions; build-time browser/system installation in a clean Node 24/Debian image; intended project virtual environment; diagnostic doctor, safe engine retry and stale disconnected-context cleanup.
+- Preserved dark visual styling, selection-coordinate conversion, DOM extraction, hover capture and inspection JSON schema 0.1. Diagnostics are additional frame/error data, not synthetic inspection data.
+- Guarded incremental updater with checksums, nonconflicting three-way merge, all-conflict preflight, backups and rollback. Complete source and unified patch are also included.
+
+“Implemented” describes code present. It does not imply the unexecuted browser/container paths passed acceptance.
+
+## Files modified
+
+See [docs/MODIFIED_FILES.md](docs/MODIFIED_FILES.md) for the exact list relative to the retained V0.1 baseline. Changes are concentrated in backend network/browser/startup/diagnostic modules, the URL/error UI, container/start scripts, tests and documentation. `frontend/src/styles.css`, `frontend/src/coordinates.js`, `backend/app/inspect.js`, `backend/app/inspector.py` and the core hover/extraction implementation remain unchanged.
+
+## Actual tests performed
+
+| Test | Actual result |
 |---|---|
-| Frontend production build | PASS — Vite 8.3.5 built the real React source |
-| Frontend coordinate tests | PASS — 6 tests, 0 failures |
-| Backend unit/API/security/proxy tests | PASS — 50 tests, 0 failures |
-| Browser-dependent pytest tests | BLOCKED/SKIPPED — 7 tests, including the public site and tablet UI flow |
-| Strict sandboxed Chromium startup probe | FAIL — root process cannot launch protected Chromium; host also prevents switching UID / creating a usable user namespace |
-| Complete `bash scripts/test.sh --public` command | EXIT 1 — intentionally fails acceptance when Chromium cannot launch |
-| Backend HTTP startup using `bash start.sh` | PASS with installed dependencies — real server returned health HTTP 200 and `browser-unavailable` |
-| Frontend served by that running backend | PASS — real built index returned HTTP 200; static asset serving also passed API tests |
-| Python module / browser extraction JS / shell syntax | PASS — compileall, node --check, bash -n |
-| Devcontainer and JSON Schema configuration syntax | PASS — JSON parsed; container execution not tested |
-| Frontend dependency audit | No known vulnerabilities reported by npm audit, including dev dependencies |
-| Python runtime dependency audit | No known vulnerabilities reported by pip-audit for the pinned runtime dependency closure |
-| GitHub Codespaces | NOT TESTED — no Codespace created or controlled |
-| Public deployment | NOT PERFORMED |
+| Python unit/API/security/proxy/update tests | **118 passed**, zero failures |
+| Browser-dependent pytest tests | **8 skipped/blocked** by sandboxed Chromium startup |
+| Frontend coordinate/API tests | **9 passed**, zero failures |
+| Vite production build | **Passed**, Vite 8.3.5 |
+| Strict `bash scripts/test.sh --public` | **Exit 1** because the essential browser startup probe failed |
+| Actual `bash start.sh` HTTP smoke | Frontend HTTP **200**, backend health **200**, bare Roblox URL normalized correctly; health truthfully reports `browser-sandbox-unavailable` |
+| Direct sandboxed Chromium attempt | **Failed**: root without a supported sandbox/non-root namespace environment |
+| `bash start.sh --isolated` | **Stopped safely**: Docker is unavailable in this host |
+| Multi-public-site API test attempt | **Stopped safely** before navigation: isolated public browser was not ready |
+| Compose YAML / private-port / internal-network / capability configuration assertions | **Passed as static checks**; containers were not run |
+| Python compilation, JavaScript syntax, shell syntax, devcontainer JSON | **Passed** |
+| Frontend npm dependency audit | No known vulnerabilities reported |
+| Node browser-service package npm audit | No known vulnerabilities reported |
+| Codespaces clean rebuild and stop/start | **Not executed** |
+| Runtime firewall/direct-egress tests | **Not executed**; no Docker available |
 
-Audits are point-in-time checks, not a security certification. pytest emitted one development-only deprecation warning about Starlette TestClient's httpx integration. TestClient API checks still passed.
+One pytest deprecation warning relates to Starlette TestClient's httpx integration; the API tests passed. Audits are point-in-time package checks, not security certification or a scan of every binary/OS package. Raw current evidence lives under `artifacts/v02/`; older audit/smoke files elsewhere in `artifacts/` belong to V0.1.
 
-Raw evidence is included in `artifacts/tests.log`, `artifacts/browser-probe.log`, `artifacts/server-smoke.json`, `artifacts/server-smoke.log`, and the two dependency-audit JSON files. Browser binaries, virtual environments and node_modules are not in the ZIP.
+The tests include URL canonicalization, unsafe IPv4/IPv6 forms, all-answer DNS validation, rebinding rejection, pinned proxy transport, API origin/body limits, navigation error categories, empty-content/screenshot errors, diagnostic redaction, full Chromium channel/sandbox options, preserving nonconflicting local edits, conflicts and backup behavior. Browser tests cover the original deterministic fixture plus delayed client-rendered content/empty content, DOM/style/hover/export behavior and the tablet UI flow once run on a supported host.
 
-## Environment and startup blocker
+## Websites successfully inspected
 
-The available environment has Python 3.12.14, Node 24.22.1, npm 11.9.0, Git 2.51.1 and file/execution access. There was no existing repository. Playwright and runtime/test dependencies were installed. Chromium was downloaded; the final pinned Playwright 1.64.1 Chromium binary was obtained from the official Chrome-for-Testing storage after the normal CDN returned empty/truncated downloads in this host.
+**None verified through V0.2 in this delivery environment.** Browser startup failed before real website navigation. No screenshot or real inspection JSON is manufactured to fill this gap.
 
-Launching with `chromium_sandbox=True` fails with Chromium's explicit “Running as root without --no-sandbox is not supported” diagnostic. This host does not allow switching to a normal user or the required user namespace configuration. No `--no-sandbox` retry or web-security bypass was used. A fresh dependency setup also encountered an incomplete local driver file; the HTTP startup smoke check used the already-installed verified development environment. A clean Codespaces installation has not been verified.
+`example.com`, JavaScript-driven `react.dev`, and Roblox are configured in `scripts/test_public.py`. That script must be run against the actual private isolated instance; it captures real diagnostics/screenshots/inspection output only after success. Review rendered screenshots for completeness before claiming compatibility. HTTP 200 or selecting an HTML shell is not enough.
 
-The API remains usable for diagnostics and invalid-URL handling. The UI displays the startup error rather than a fake website. This does not satisfy inspection acceptance.
+## Roblox / blank-preview investigation
 
-## Acceptance criteria
+Source review found plausible compatibility risks in V0.1: an exact-host allowlist can reject CDN/API resources; a 350 ms settle period can capture an unhydrated SPA; GET/HEAD-only Playwright routing can block HTTPS API POSTs; short proxy connection life can interrupt resources. V0.2 addresses these risks and exports the evidence needed to distinguish them.
 
-| Requirement | Status here |
-|---|---|
-| Frontend starts | Build and HTTP serving verified; interactive browser rendering unverified |
-| Backend starts | Verified in graceful browser-unavailable state |
-| Playwright launches Chromium | Failed in this host |
-| Public test website opens in Chromium | Blocked before navigation; not verified |
-| Real screenshot displayed | Implemented; unverified |
-| Correct real element selected | Implemented with hit-test and ElementHandle; unverified |
-| Real computed CSS returned | Implemented; unverified in Chromium |
-| Accurate selection highlight | Conversion tests passed; actual browser overlay unverified |
-| Actual hover observations | Implemented; browser test blocked |
-| Inspection JSON exported | Implemented; real browser/UI export test blocked |
-| Invalid/unsafe URLs rejected | Policy and API tests verified |
-| Browser sessions cleaned up | Unit expiry/proxy cleanup verified; real context cleanup test blocked |
-| Documented startup command | HTTP startup verified with prepared dependencies; fresh Codespaces setup unverified |
+**The original Roblox blank preview was not reproduced here**, so these are source-backed hypotheses, not a confirmed root cause. No automation-detection bypass, CAPTCHA handling, login, user-agent spoofing or certificate bypass was introduced. The screenshot preview does not iframe-embed the target; frame-embedding headers therefore are not themselves an explanation for a decoded screenshot being blank. The target's own CSP/resource failures are observed rather than disabled.
 
-## Implemented source
+## Startup/container work
 
-- Exact-host URL/DNS policy plus a validating, authenticated local egress proxy that pins connections to vetted IPs.
-- Browser manager with one Chromium process, isolated contexts, timeouts, concurrency/session/request budgets and expiry cleanup.
-- Navigation, viewport screenshots, viewport hit-testing, shadow-root descent, internal element references, computed CSS grouping, geometry, safe HTML evidence, metadata and JSON schema 0.1.
-- Baseline and timed hover sampling, style/geometry comparisons, actual timestamps, active animation timing/keyframes and before/midpoint/final screenshot capture.
-- Responsive dark React UI, viewport selector, screenshot decoding/scaling, tap/pointer selection, clipped highlight, touch/wheel/basic button scrolling, inspection tabs, clear/close, reload/refresh and JSON copy/download.
-- Codespaces devcontainer, pinned dependencies, setup/start/test scripts, deterministic local fixture, public example.com test and full UI acceptance test.
+Newer prebuilt Playwright image tags checked at the registry returned 404. To avoid shipping an unavailable tag, both development and browser Dockerfiles build from maintained Node 24/Debian, install pinned Playwright 1.64.1, and install its matching full Chromium/system packages at **image build time**. The clean image avoids inheriting the old running container's Yarn APT signing-key problem. No old APT source was disabled and no Chromium security option was weakened.
 
-## Partial features and known limits
+Container builds themselves could not be executed here. Docker-in-Docker, IPv4/IPv6 netfilter, required capabilities and sandbox namespace support must be verified in the target Codespace. An unsupported host must remain blocked, not be made permissive to get a green result.
 
-- Animation comparisons are computed-style/geometry comparisons. Images are captured evidence; numerical pixel-difference scoring is not implemented. Arbitrary JavaScript animation source is not recovered.
-- Iframe contents and closed shadow roots are opaque; V0.1 reports the outer element and a limitation. SVG DOM nodes are inspectable where hit-testing returns one. Canvas/WebGL receive outer-element and available visual evidence only.
-- Role/name is best effort, not the complete accessibility tree. Pseudo-elements/custom properties are bounded. Computed CSS is not original authored CSS.
-- A moving/self-updating page can drift between screenshot and DOM extraction. Frame IDs detect outdated client frames, not independent animation movement.
-- Hover baselines can still be hovered at the viewport corner and long earlier transitions can be unsettled. Such cases are flagged. Hover remains active after capture.
-- Network filtering and a proxy do not prove host-level isolation. Exact-host allowlisting stays mandatory. No authentication, public-service protection, enforced per-session heap quota, or complete browser-network isolation is provided.
-- Browser-backed examples and running-app screenshots are absent because their tests did not pass. The tests generate them only on success; no manufactured substitute is included.
+## Known limitations and security considerations
 
-## Not implemented / outside Milestone 01
+- The public-stack firewall design is implemented but unverified on this host; do not claim complete SSRF protection or deploy an unrestricted public service based only on unit/static checks.
+- The trusted development/Docker controller is privileged infrastructure. The website browser is separately isolated and drops capabilities before launch. A malicious Docker administrator, gateway/controller compromise or kernel compromise is outside this boundary.
+- Restricted local mode still needs exact approved hosts. The code refuses local unrestricted public browsing.
+- WebSockets, service workers, media and some resource/method patterns remain restricted. Plain HTTP proxying is GET/HEAD only. Per-connection transfer/time budgets and per-session request limits can interrupt complex sites. Total per-session transfer accounting and per-context heap quotas remain future work.
+- The default Docker subnet must not overlap another network. IPv6-only sites require gateway IPv6 reachability. IPv6 netfilter or sandbox restrictions can prevent startup; failure is intentional.
+- Readiness, empty-content and access-check detection are heuristics. Canvas-heavy sites and long-running hydration may need manual refresh; no arbitrary JavaScript animation source is recovered.
+- Iframe/closed-shadow content limitations, best-effort selectors/accessibility, bounded snippets and successive-screenshot timing remain from V0.1.
+- No authentication/public abuse protection was added; keep Codespaces port 8000 **Private**. Secret files, .env, virtual environments, node_modules and Git metadata are excluded. No paid service or public deployment was used.
 
-Streaming remote video, iframe-content traversal, closed-shadow introspection, arbitrary page clicks or login, destructive actions, animation source reconstruction, numerical screenshot pixel comparison, AI prompt/code generation, account/payment systems, project management and native apps.
+## Exact deployment and startup
 
-## Required next action and Milestone 02 priorities
+Follow [UPGRADE.md](UPGRADE.md): upload/extract the update ZIP inside the existing repository, run the updater's `--check` then `--apply`, review conflicts if any, and choose **Codespaces: Rebuild Container**. Then:
 
-1. On a sandbox-capable host, run `bash scripts/test.sh --public`. Fix any actual browser/UI failures it reveals. Verify the generated evidence and interact manually from the Android tablet. Do not declare Milestone 01 complete before this succeeds.
-2. Add enforced egress isolation, credential separation, total transfer accounting and per-session resource controls before widening URL access.
-3. Expand tested iframe/shadow support and animation comparison coverage.
-4. After inspection acceptance is achieved, build Milestone 02 prompt generation using this versioned evidence. No paid AI service is needed for V0.1.
+```bash
+bash start.sh --isolated
+```
+
+Open private forwarded port 8000. For optional restricted local development use `bash start.sh`. After Codespace resume, use the same isolated start command; it checks and, when necessary, retries the backend's browser connection. Test:
+
+```bash
+bash scripts/test.sh --public
+.venv/bin/python scripts/test_public.py
+```
+
+Stop without deleting the project:
+
+```bash
+docker compose -f compose.inspection.yml stop
+```
+
+Resolve all actual browser/container/public-site test failures on the target host before marking Mission 02 complete. No such success is claimed in this delivery.

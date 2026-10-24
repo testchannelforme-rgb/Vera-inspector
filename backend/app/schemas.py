@@ -12,7 +12,7 @@ class Viewport(StrictModel):
 
 
 class OpenRequest(StrictModel):
-    url: str = Field(min_length=8, max_length=2048)
+    url: str = Field(min_length=1, max_length=2048)
     viewport: Viewport = Field(default_factory=Viewport)
 
 

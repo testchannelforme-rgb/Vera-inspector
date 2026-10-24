@@ -14,7 +14,7 @@ from .security import PolicyError
 
 
 class EgressProxy:
-    def __init__(self, policy, max_connections=32):
+    def __init__(self, policy, max_connections=48):
         self.policy = policy
         self.server = None
         self.username = 'veyra'
@@ -42,7 +42,7 @@ class EgressProxy:
             raise PolicyError('No destination addresses.')
         for record in records:
             self.policy.check_ip(record[4][0])
-        return normalized, str(ipaddress.ip_address(records[0][4][0])), port
+        return normalized, str(ipaddress.ip_address(sorted(records,key=lambda r:r[0]!=socket.AF_INET)[0][4][0])), port
 
     async def _accept(self, reader, writer):
         task = asyncio.current_task()
@@ -51,7 +51,7 @@ class EgressProxy:
         self.tasks.add(task)
         upstream = None
         try:
-            async with asyncio.timeout(25):
+            async with asyncio.timeout(90):
                 header = await reader.readuntil(b'\r\n\r\n')
                 if len(header)>16384:
                     raise ValueError('Header too large')
@@ -84,7 +84,7 @@ class EgressProxy:
                     excluded={'host','connection','proxy-authorization','proxy-connection','content-length','transfer-encoding','upgrade','te','trailer','keep-alive'}
                     forwarded += [f'{k}: {v}' for k,v in headers.items() if k not in excluded]
                     upstream.write(('\r\n'.join(forwarded)+'\r\n\r\n').encode('latin1'));await upstream.drain()
-                remaining=[12*1024*1024]
+                remaining=[24*1024*1024]
                 async def relay(source,destination):
                     while remaining[0]>0:
                         chunk=await asyncio.wait_for(source.read(min(65536,remaining[0])),10)

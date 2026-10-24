@@ -1,0 +1,79 @@
+name: veyra-inspector
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    environment:
+      VEYRA_NETWORK_MODE: isolated-public
+      VEYRA_PROXY_SERVER: http://172.30.88.2:8888
+      VEYRA_PROXY_PASSWORD_FILE: /run/secrets/proxy_password
+      VEYRA_CONTROL_TOKEN_FILE: /run/secrets/control_token
+      VEYRA_ISOLATION_PROOF_FILE: /run/veyra/ready.json
+      VEYRA_UI_ORIGIN: ${VEYRA_UI_ORIGIN:-}
+    secrets: [proxy_password, control_token]
+    volumes: [browser_status:/run/veyra:ro]
+    ports: ["127.0.0.1:8000:8000"]
+    networks: [control, internet]
+    depends_on:
+      browser: {condition: service_healthy}
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+  browser:
+    build:
+      context: .
+      dockerfile: docker/browser.Dockerfile
+    init: true
+    networks:
+      control: {}
+      browsing: {ipv4_address: 172.30.88.3}
+    secrets: [control_token]
+    volumes: [browser_status:/run/veyra]
+    tmpfs: ["/tmp:rw,size=512m"]
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN, SETUID, SETGID, SETPCAP, CHOWN, DAC_OVERRIDE, SYS_CHROOT]
+    security_opt: ["seccomp=./.devcontainer/seccomp_profile.json"]
+    shm_size: 256m
+    mem_limit: 1200m
+    cpus: 1
+    pids_limit: 256
+    depends_on: [gateway]
+    healthcheck:
+      test: ["CMD", "node", "-e", "const p=JSON.parse(require('fs').readFileSync('/run/veyra/ready.json'));if(!p.sandboxEnabled)process.exit(1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 8
+      start_period: 5s
+    restart: unless-stopped
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    command: [python, /opt/veyra/docker/gateway.py]
+    secrets: [proxy_password]
+    networks:
+      browsing: {ipv4_address: 172.30.88.2}
+      internet: {}
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+networks:
+  control: {internal: true}
+  browsing:
+    internal: true
+    ipam:
+      config: [{subnet: 172.30.88.0/24}]
+  internet: {}
+volumes:
+  browser_status: {}
+secrets:
+  control_token: {file: .veyra-runtime/control_token}
+  proxy_password: {file: .veyra-runtime/proxy_password}

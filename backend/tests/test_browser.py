@@ -88,3 +88,16 @@ async def test_real_public_site(browser_manager,request):
     assert data.styles['font-size']
     Path('artifacts/public-inspection.json').write_text(data.model_dump_json(indent=2))
     Path('artifacts/public-website.jpg').write_bytes(base64.b64decode(frame['image'].split(',')[1]))
+
+
+async def test_dynamic_readiness_and_empty_content_diagnostics(browser_manager,fixture_site):
+    session,frame=await browser_manager.create(fixture_site+'/dynamic.html',{'width':1280,'height':800})
+    assert frame['diagnostics']['httpStatus']==200
+    assert frame['diagnostics']['navigationState']=='loaded'
+    assert not frame['diagnostics']['readiness']['empty']
+    inspection=await select_id(session,'#hydrated')
+    assert inspection.styles['background-color']=='rgb(40, 100, 200)'
+    await browser_manager.close(session.token)
+    _,empty=await browser_manager.create(fixture_site+'/empty.html',{'width':1280,'height':800})
+    assert empty['diagnostics']['navigationState']=='loaded-empty'
+    assert empty['warnings']

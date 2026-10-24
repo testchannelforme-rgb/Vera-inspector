@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")"
+if [[ "${1:-}" == "--isolated" ]]; then exec bash scripts/start-isolated.sh; fi
 if [[ ! -x .venv/bin/python || ! -d frontend/node_modules || ! -f frontend/dist/index.html ]]; then
   bash scripts/setup.sh
 fi

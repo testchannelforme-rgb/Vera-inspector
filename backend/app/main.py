@@ -14,7 +14,8 @@ from .browser_manager import BrowserManager, SessionError
 from .config import Settings
 from .inspector import HIT_TEST_JS, inspect_element
 from .schemas import OpenRequest, PointRequest, ScrollRequest, FrameRequest, HoverRequest
-from .security import PolicyError
+from .security import PolicyError, normalize_url
+from .diagnostics import startup_diagnostic
 
 logger = logging.getLogger('veyra')
 
@@ -28,13 +29,13 @@ def create_app(settings=None, manager=None):
         app.state.startup_error = None
         try:
             await manager.start()
-        except Exception:
-            app.state.startup_error = 'Chromium failed to start. Install Playwright Chromium and use a non-root environment with Chromium sandbox support. See README troubleshooting.'
+        except Exception as exc:
+            app.state.startup_error = manager.startup_error or startup_diagnostic(exc)
             logger.exception('Chromium startup failed; the sandbox remains enabled')
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.1.0', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.2.0', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -73,7 +74,7 @@ def create_app(settings=None, manager=None):
 
     @app.exception_handler(SessionError)
     async def session_error(request, exc):
-        return JSONResponse({'detail': str(exc)}, status_code=exc.status)
+        return JSONResponse({'detail': str(exc),'code':exc.code,'diagnostics':exc.diagnostics}, status_code=exc.status)
 
     @app.exception_handler(PolicyError)
     async def policy_error(request, exc):
@@ -82,11 +83,11 @@ def create_app(settings=None, manager=None):
     @app.exception_handler(PlaywrightTimeout)
     @app.exception_handler(TimeoutError)
     async def timed_out(request, exc):
-        return JSONResponse({'detail':'Browser operation timed out. The website may be slow or block automation. Open it again.'}, status_code=504)
+        return JSONResponse({'detail':'Browser operation timed out. The website may be slow or block automation. Open it again.','code':'operation-timeout'}, status_code=504)
 
     @app.exception_handler(PlaywrightError)
     async def browser_error(request, exc):
-        return JSONResponse({'detail':'Website operation failed. The site may be blocked, the selected element may have changed, or the browser may have closed. Refresh or open again.'}, status_code=502)
+        return JSONResponse({'detail':'Website operation failed. The site may be blocked, the selected element may have changed, or the browser may have closed. Refresh or open again.','code':'website-operation-failed'}, status_code=502)
 
     @app.exception_handler(ValueError)
     async def value_error(request, exc):
@@ -100,8 +101,30 @@ def create_app(settings=None, manager=None):
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.2.0',
                 'schemaVersion':'0.1'}
+
+    @app.post('/api/browser/retry')
+    async def retry_browser():
+        async with manager.guard:
+            if manager.sessions and (not manager.browser or not manager.browser.is_connected()):
+                for token in list(manager.sessions):await manager.close(token)
+            if manager.sessions:
+                raise SessionError('Close active sessions before retrying the engine.',409)
+            await manager.stop()
+            try:
+                await manager.start()
+                app.state.startup_error=None
+            except Exception as exc:
+                app.state.startup_error=manager.startup_error or startup_diagnostic(exc)
+                raise SessionError('Browser engine could not restart.',503,'browser-engine-failure',app.state.startup_error) from exc
+        return await health()
+
+    @app.post('/api/normalize')
+    async def normalize(body: dict):
+        if set(body)!={'url'} or not isinstance(body['url'],str):
+            return JSONResponse({'detail':'Provide one website address.'},status_code=422)
+        return {'url':normalize_url(body['url'])}
 
     @app.post('/api/sessions', status_code=201)
     async def open_session(body: OpenRequest):
