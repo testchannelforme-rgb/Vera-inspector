@@ -24,9 +24,9 @@ export default function PromptPanel({session,frame,inspection,busy,aiAvailable,o
     });
   }
   return <section className="prompt-panel" aria-label="AI recreation prompt">
-    <div className="panel-title">Generate AI Prompt <span className="badge">V0.3 · PROMPTS ONLY</span></div>
+    <div className="panel-title">Generate AI Prompt <span className="badge">V0.3.1 · PROMPTS ONLY</span></div>
     <div className="prompt-content">
-      <p className="fine-print">Target: {scope==='page'?'Visible page at the current scroll position':inspection?`Selected <${inspection.element.tagName}>${scope==='section'?' and nearest section ancestor':''}`:'Select an element in the preview'}. Existing selection and JSON export stay available above.</p>
+      <p className="fine-print">Target: {scope==='page'?'Visible page at the current scroll position':inspection?`Selected <${inspection.element.tagName}>${scope==='section'?' and scored local component boundary':''}`:'Select an element in the preview'}. Existing selection and JSON export stay available above.</p>
       <div className="prompt-controls">
         <label>Generation scope<select value={scope} disabled={busy||generating} onChange={e=>setScope(e.target.value)}><option value="element">Selected element</option><option value="section">Selected section</option><option value="page">Full page · visible sample</option></select></label>
         <label>Implementation format<select value={target} disabled={busy||generating} onChange={e=>setTarget(e.target.value)}><option value="html-css">HTML + CSS</option><option value="html-css-js">HTML + CSS + JavaScript</option><option value="react">React</option></select></label>

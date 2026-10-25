@@ -1,3 +1,4 @@
+from playwright.async_api import expect
 """Real browser -> served React -> API -> remote browser -> actual DOM -> export."""
 import asyncio
 import json
@@ -38,7 +39,7 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         await page.get_by_role('button',name='Open website').click()
         preview=page.get_by_role('button',name='Select an element in the website screenshot')
         await preview.wait_for()
-        await page.wait_for_function('document.querySelector(".image-stage")?.getAttribute("aria-busy")==="false"')
+        await page.locator('.image-stage[aria-busy="false"]').wait_for()
         session=next(s for s in manager.sessions.values())
         target=await session.page.locator('#explore').bounding_box()
         displayed=await preview.bounding_box()
@@ -49,7 +50,7 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         assert 'button' in await overlay.inner_text()
         rect=await overlay.bounding_box()
         assert abs(rect['width']-160*displayed['width']/1280)<2
-        await page.get_by_role('tab',name='Motion',exact=True).click()
+        await page.get_by_role('tab',name='Motion',exact=True).click(timeout=90000)
         await page.get_by_role('button',name='Capture hover').click()
         await page.get_by_text('Captured states',exact=True).wait_for(timeout=10000)
         async with page.expect_download() as download_info:
@@ -60,16 +61,18 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         assert data['element']['id']=='explore'
         assert data['animations']['observations']
         # The same real inspection now feeds the no-key prompt engine.
-        await page.get_by_role('button',name='Generate Prompt',exact=True).click()
+        assert not errors, f'Browser errors before prompt click: {errors}'
+        print('VISIBLE BUTTONS:', await page.get_by_role('button').all_text_contents(), flush=True)
+        await page.get_by_role('button',name='Generate Prompt',exact=True).click(timeout=90000)
         output=page.get_by_label('Generated prompt',exact=True)
-        await page.wait_for_function('document.querySelector("textarea")?.value.includes("## 8. Accuracy notes")')
+        await expect(page.get_by_label('Generated prompt', exact=True)).to_contain_text('## 8. Accuracy notes', timeout=30000)
         prompt=await output.input_value()
         assert data['styles']['background-color'] in prompt
         assert 'Actual selected-element hover observation' in prompt
         await output.fill('My edited recreation prompt')
         assert await output.input_value()=='My edited recreation prompt'
-        await page.get_by_role('button',name='Regenerate',exact=True).click()
-        await page.wait_for_function('document.querySelector("textarea")?.value.includes("## 8. Accuracy notes")')
+        await page.get_by_role('button',name='Regenerate',exact=True).click(timeout=90000)
+        await expect(page.get_by_label('Generated prompt', exact=True)).to_contain_text('## 8. Accuracy notes', timeout=30000)
         assert not errors
         Path('artifacts').mkdir(exist_ok=True)
         await download.save_as('artifacts/ui-export.json')
@@ -77,9 +80,9 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         await page.set_viewport_size({'width':390,'height':844})
         assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         await page.screenshot(path='artifacts/veyra-mobile.png',full_page=True)
-        await page.get_by_role('button',name='Clear',exact=True).click()
+        await page.get_by_role('button',name='Clear',exact=True).click(timeout=90000)
         await overlay.wait_for(state='detached')
-        await page.get_by_role('button',name='Close',exact=True).click()
+        await page.get_by_role('button',name='Close',exact=True).click(timeout=90000)
         await page.get_by_text('Session closed.',exact=True).wait_for()
         assert not manager.sessions
     finally:

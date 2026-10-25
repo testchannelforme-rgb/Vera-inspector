@@ -37,3 +37,25 @@ async def test_actual_section_page_and_sensitive_inputs(browser_manager,fixture_
     assert any(n['tag']=='input' for n in full['nodes'])
     assert any(n['tag']=='nav' for n in full['nodes'])
     await manager.close(session.token)
+
+
+import pytest
+
+
+@pytest.mark.parametrize('selector,expected',[
+    ('#hero-heading','hero'),('#card-heading','card'),('#nav-link','nav'),
+    ('#plain-heading','plain-card'),('#direct-heading','direct-heading'),('#fallback-heading','local-parent')])
+async def test_actual_local_section_boundaries(browser_manager,fixture_site,selector,expected):
+    session,_=await browser_manager.create(fixture_site+'/accuracy.html',{'width':1280,'height':800})
+    selected=await session.page.query_selector(selector)
+    await selected.scroll_into_view_if_needed()
+    from app.prompts.evidence import COLLECT_JS
+    raw=await selected.evaluate(COLLECT_JS,'section')
+    # Assert actual chosen identity via a test-only appended return expression.
+    from app.prompts.evidence import BOUNDARY_JS
+    chosen_id=await selected.evaluate('(el)=>('+BOUNDARY_JS+')(el).element.id')
+    assert chosen_id==expected
+    assert raw['boundaryDecision']['rootTag'] not in ('main','body','html')
+    ids={n['id'] for n in raw['nodes']}
+    assert all(n['parent'] is None or n['parent'] in ids for n in raw['nodes'])
+    await browser_manager.close(session.token)

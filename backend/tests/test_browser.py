@@ -26,7 +26,7 @@ async def test_navigation_screenshot_selection_css_serialization(browser_manager
     assert data.styles['background-color']=='rgb(37, 99, 235)'
     assert data.styles['font-size']=='16px'
     assert data.geometry.width==160 and data.geometry.height==48
-    assert data.element.selectorUnique and data.element.accessibility.name=='Explore fixture'
+    assert data.element.selectorUnique and data.element.accessibility['name']=='Explore fixture'
     assert data.pseudoElements['::before']['content']!='none'
     assert data.customProperties['--accent']=='#2563eb'
     assert Inspection.model_validate_json(data.model_dump_json()).element.id=='explore'
