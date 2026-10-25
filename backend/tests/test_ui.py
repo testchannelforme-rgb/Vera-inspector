@@ -59,6 +59,17 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         data=json.loads(Path(path).read_text())
         assert data['element']['id']=='explore'
         assert data['animations']['observations']
+        # The same real inspection now feeds the no-key prompt engine.
+        await page.get_by_role('button',name='Generate Prompt',exact=True).click()
+        output=page.get_by_label('Generated prompt',exact=True)
+        await page.wait_for_function('document.querySelector("textarea")?.value.includes("## 8. Accuracy notes")')
+        prompt=await output.input_value()
+        assert data['styles']['background-color'] in prompt
+        assert 'Actual selected-element hover observation' in prompt
+        await output.fill('My edited recreation prompt')
+        assert await output.input_value()=='My edited recreation prompt'
+        await page.get_by_role('button',name='Regenerate',exact=True).click()
+        await page.wait_for_function('document.querySelector("textarea")?.value.includes("## 8. Accuracy notes")')
         assert not errors
         Path('artifacts').mkdir(exist_ok=True)
         await download.save_as('artifacts/ui-export.json')

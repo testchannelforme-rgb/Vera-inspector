@@ -30,6 +30,7 @@ class Session:
     touched: float = field(default_factory=time.monotonic)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     element: object = None
+    prompt_hover: dict | None = None
     reference_id: str = ''
     frame_id: str = ''
     blocked: set[str] = field(default_factory=set)
@@ -42,6 +43,7 @@ class Session:
             with suppress(Exception):
                 await self.element.dispose()
         self.element, self.reference_id = None, ''
+        self.prompt_hover = None
 
     def check_frame(self, frame_id):
         if not self.frame_id or frame_id != self.frame_id:

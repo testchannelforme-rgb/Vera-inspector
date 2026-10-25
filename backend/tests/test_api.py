@@ -74,7 +74,7 @@ async def test_operation_lock_and_expired_session():
     await s.lock.acquire()
     with pytest.raises(SessionError,match='already running'):
         async with manager.operation('token'):pass
-    s.lock.release();s.born=0
+    s.lock.release();s.born=__import__('time').monotonic()-manager.settings.session_ttl-1
     with pytest.raises(SessionError,match='expired'):
         async with manager.operation('token'):pass
     await manager.close('token')

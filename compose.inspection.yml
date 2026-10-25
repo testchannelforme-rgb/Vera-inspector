@@ -11,6 +11,14 @@ services:
       VEYRA_CONTROL_TOKEN_FILE: /run/secrets/control_token
       VEYRA_ISOLATION_PROOF_FILE: /run/veyra/ready.json
       VEYRA_UI_ORIGIN: ${VEYRA_UI_ORIGIN:-}
+      VEYRA_AI_ENABLED: ${VEYRA_AI_ENABLED:-false}
+      VEYRA_AI_PROVIDER: ${VEYRA_AI_PROVIDER:-openai-compatible}
+      VEYRA_AI_ENDPOINT: ${VEYRA_AI_ENDPOINT:-https://api.openai.com/v1/chat/completions}
+      VEYRA_AI_MODEL: ${VEYRA_AI_MODEL:-}
+      VEYRA_AI_API_KEY: ${VEYRA_AI_API_KEY:-}
+      VEYRA_AI_TIMEOUT_SECONDS: ${VEYRA_AI_TIMEOUT_SECONDS:-15}
+      VEYRA_AI_MAX_OUTPUT_TOKENS: ${VEYRA_AI_MAX_OUTPUT_TOKENS:-1500}
+      VEYRA_AI_TOKEN_PARAMETER: ${VEYRA_AI_TOKEN_PARAMETER:-max_completion_tokens}
     secrets: [proxy_password, control_token]
     volumes: [browser_status:/run/veyra:ro]
     ports: ["127.0.0.1:8000:8000"]

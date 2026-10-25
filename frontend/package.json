@@ -1,7 +1,22 @@
 {
-  "name":"veyra-inspector","version":"0.2.0","private":true,"type":"module",
-  "scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","test":"node --test tests/*.test.js"},
-  "dependencies":{"react":"19.1.1","react-dom":"19.1.1"},
-  "devDependencies":{"vite":"8.3.5"},
-  "engines":{"node":">=20.19.0"}
+  "name": "veyra-inspector",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "react-test-renderer": "19.1.1",
+    "vite": "8.3.5"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }

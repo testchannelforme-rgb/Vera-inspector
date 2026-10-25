@@ -1,3 +1,17 @@
+# V0.3 prompt-generation security additions
+
+V0.2 browser sandboxing, isolated networks, firewall rules, proxy pinning, URL restrictions, quotas and private forwarding remain in place. Only the app service receives optional AI credentials; no credential is added to the browser service or frontend. The production app now includes pinned HTTPX for the optional adapter.
+
+Prompt requests accept server-side session/frame/element references only. Collection has bounded time, traversal and byte budgets; HTML, input values, cookies and storage are excluded. Visible text redaction is best effort, not a guarantee that all personal data is removed. Local mode is the default. AI mode explicitly sends reduced page evidence to the configured provider; do not inspect private content. Payloads and provider responses are not logged or persisted by this feature.
+
+The provider endpoint is trusted administrator configuration, not an API request field. HTTPS/443 only, no credentials/query/fragment, public destination checks on every proxy connection, numeric IP pinning, verified TLS, no redirects, no inherited environment proxies, bounded response bytes and total time. No automatic retries. Private/local provider servers are unsupported. The credential is an Authorization header and is never placed in the model messages. A response containing that exact credential is rejected. Provider errors return generic warnings and local fallback; malformed optional configuration disables AI.
+
+Separate system instructions and JSON-encoded untrusted evidence reduce prompt-injection impact. There are no model tools, browser actions or secrets in model context. AI prose remains untrusted interpretation and may still be wrong or instruction-bearing; it is labelled and appended to authoritative measured sections. No complete prompt-injection immunity or hallucination prevention is claimed. Downstream coding tools must treat page copy as data. React displays output only as editable text; no unsafe HTML, script or generated code execution is added.
+
+Rate limits are in-process for the supplied one-worker private app. They do not replace public authentication, provider spending controls or multi-user isolation. The V0.3 adapter was tested with mocked providers and a real local-proxy denial path; no live-key request or Docker/Codespaces test ran here. See [docs/PROMPTS.md](docs/PROMPTS.md) and [TEST_REPORT.md](TEST_REPORT.md).
+
+---
+
 # V0.2 security model
 
 **Not a security certification.** The public-isolation implementation was not executed in this delivery host: it has no Docker and cannot launch protected Chromium. Validate it on the target host. Universal access is not enabled by deleting the allowlist or using `*`.

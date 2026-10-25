@@ -1,57 +1,29 @@
-# Applying V0.2 to the existing Vera-inspector repository
+# Apply V0.3 to the existing V0.2 repository
 
-This is an incremental update based on the delivered V0.1 source. Current GitHub source could not be retrieved through the available connection. Do not delete or replace the repository. The archive contains a guarded updater, a patch and complete source for reference.
+The remote GitHub repository could not be read (404). This package is an incremental update against the retained V0.2 delivery. Your live source may differ; review conflicts rather than force-copying files.
 
-## Tablet / Codespaces steps
-
-1. Download `Veyra_Inspector_V0.2.zip`. In your existing Codespaces browser editor, use the Explorer upload action to upload it to the directory containing `backend`, `frontend` and `start.sh`.
-2. In that directory's terminal run:
-
-```bash
-unzip -q Veyra_Inspector_V0.2.zip
-python3 veyra-v02-update/apply_update.py --check
-```
-
-3. If it reports no conflicts, apply:
+1. In the existing Codespace, check `git status`. Preserve your current work using your usual commit or backup process. No script resets Git or discards changes.
+2. Upload `Veyra_AI_V0.3.zip` beside `backend`, `frontend` and `start.sh` using Explorer.
+3. Create a feature branch, then check and apply:
 
 ```bash
-python3 veyra-v02-update/apply_update.py --apply
+git switch -c feature/v0.3-prompt-engine
+unzip -q Veyra_AI_V0.3.zip
+python3 veyra-v03-update/apply_update.py --check
+python3 veyra-v03-update/apply_update.py --apply
 ```
 
-Existing files are backed up under `.v02-backups/update-...`. Locally changed files are three-way merged using the packaged V0.1 baseline. If any merge conflicts, **no project file is changed**. Do not force-copy the complete source over local work. Review the named conflicts against `veyra-v02-update/baseline` and `veyra-v02-update/updated`, or share only those nonsensitive source files for reconciliation.
+The unchanged V0.2 updater performs checksum/path checks, plans all files, attempts three-way merges and refuses the whole update on conflict. Backups retain the existing folder convention `.v02-backups/update-*`. It does not delete unrelated files or create Git commits. `baseline/` and `updated/` support review. If any conflict is reported, no project file changes; compare those specific files manually. `full-source/` is a reference, not permission to overwrite a customized repository.
 
-4. Choose **Codespaces: Rebuild Container** from the command palette. The new development image installs matching Playwright/Chromium and its system libraries during build; Docker-in-Docker supplies the isolated browser stack. No change to the old Yarn APT signing key is needed because the rebuilt image uses clean distribution sources.
-5. Once setup finishes, start public inspection:
+4. Start with the existing isolated stack:
 
 ```bash
 bash start.sh --isolated
 ```
 
-6. Open forwarded port **8000** with visibility **Private**. Enter `example.com`. Once it works, try `react.dev`, then Roblox and inspect the new Page diagnostics panel. A site restriction is an error to report, not something to bypass.
-7. Run actual target-host checks:
+Docker rebuilds the app/frontend and installs its pinned HTTPX runtime dependency. Browser image, seccomp, firewall rules, private ports and devcontainer remain unchanged. A fresh Codespace still needs **Codespaces: Rebuild Container**. This update was not executed in Codespaces here.
 
-```bash
-bash scripts/test.sh --public
-.venv/bin/python scripts/test_public.py
-```
+5. Keep forwarded port 8000 Private. Test example.com inspection, selection, hover and JSON export first. Then generate a local prompt, edit/copy/regenerate it, change scope and inspect the warnings. Select a different element to verify stale drafts clear.
+6. Install development dependencies with `bash scripts/setup.sh`, then run the tests in README. Review `git diff` before committing or opening a PR. This delivery did not push to GitHub or open a PR.
 
-The first command checks the local sandboxed engine/fixture and unit tests; the second exercises the isolated public API against multiple live sites. In an isolated-only host where a direct/local Chromium launch is unsupported, the local probe may fail even when the separate public browser works. Report both results rather than changing the local sandbox settings.
-
-## Stop/start and diagnostics
-
-```bash
-docker compose -f compose.inspection.yml stop
-bash start.sh --isolated
-bash scripts/doctor.sh --environment-only
-docker compose -f compose.inspection.yml logs --tail=80 browser gateway app
-```
-
-If Docker, IPv6 netfilter, namespace support or firewall capabilities are unavailable, public mode stops with an error. Do not remove firewall rules or disable the Chromium sandbox. Restricted mode remains `bash start.sh` with explicit approved public hosts.
-
-The default private subnet `172.30.88.0/24` must not overlap an existing Docker network. If there is a conflict, stop and adjust the Compose subnet, gateway address, browser firewall, readiness proof and tests together; do not change only the proxy URL.
-
-## Reviewing and committing
-
-Review `git status --short` and `git diff` after applying. Stage only the intended files listed in `docs/MODIFIED_FILES.md`, plus any deliberate conflict resolution. The update excludes `.env`, credentials, virtual environments, node_modules, Git metadata and `.veyra-runtime`. Generated capabilities, backups and the update archive are ignored. No remote commit, branch, PR or public deployment was created during delivery.
-
-`veyra-v02-update/patches/veyra-v0.2.patch` is an alternative unified patch. Use `git apply --check` before applying it. The complete `full-source/` tree is a reference/runnable copy; the updater does not replace your project with it.
+The bundle also includes `patches/veyra-v0.3.patch`; `git apply --check` is suitable for an unmodified matching baseline, but the guarded updater is safer for local changes. Never use force/reset commands to apply this upgrade.

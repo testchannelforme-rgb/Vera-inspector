@@ -16,13 +16,18 @@ from .inspector import HIT_TEST_JS, inspect_element
 from .schemas import OpenRequest, PointRequest, ScrollRequest, FrameRequest, HoverRequest
 from .security import PolicyError, normalize_url
 from .diagnostics import startup_diagnostic
+from .prompts.schemas import PromptRequest
+from .prompts.service import PromptService
+from .prompts.evidence import collect_evidence, hover_summary
 
 logger = logging.getLogger('veyra')
 
 
-def create_app(settings=None, manager=None):
+def create_app(settings=None, manager=None, prompt_service=None):
     settings = settings or Settings.from_env()
     manager = manager or BrowserManager(settings)
+
+    prompt_service = prompt_service or PromptService()
 
     @asynccontextmanager
     async def lifespan(app):
@@ -35,7 +40,7 @@ def create_app(settings=None, manager=None):
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.2.0', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.3.0', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -101,7 +106,7 @@ def create_app(settings=None, manager=None):
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.2.0',
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.3.0','prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
                 'schemaVersion':'0.1'}
 
     @app.post('/api/browser/retry')
@@ -186,6 +191,7 @@ def create_app(settings=None, manager=None):
             if session.element is None:
                 raise SessionError('Select an element before capturing hover.')
             inspection = await capture_hover(session, body.durationMs, body.intervalMs)
+            session.prompt_hover = hover_summary(inspection)
             return await result(session, inspection)
 
     @app.post('/api/sessions/{token}/clear')
@@ -195,6 +201,14 @@ def create_app(settings=None, manager=None):
             await session.page.mouse.move(0, 0)
             await session.page.wait_for_timeout(250)
             return await result(session)
+
+    @app.post('/api/prompts/generate')
+    async def generate_prompt(body: PromptRequest):
+        # Client supplies references and preferences only; website evidence stays server-owned.
+        async with prompt_service.admission(body.sessionId):
+            async with manager.operation(body.sessionId) as session:
+                evidence = await collect_evidence(session, body)
+            return await prompt_service.generate(evidence, body)
 
     dist = Path(__file__).resolve().parents[2] / 'frontend' / 'dist'
     if dist.exists():

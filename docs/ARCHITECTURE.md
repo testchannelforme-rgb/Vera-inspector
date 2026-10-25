@@ -61,3 +61,9 @@ The public path uses a separate Node Playwright launchServer and a dedicated egr
 Frames add a `diagnostics` object. Errors may add `code` and safe `diagnostics`; existing `detail` is preserved. Inspection schemaVersion remains 0.1 and the selection-coordinate convention is unchanged. New diagnostic categories include navigation-timeout, website-blocked-or-inaccessible, loaded-empty, screenshot-failure, response-transfer-failure and browser-engine-failure. No computed values are synthesized.
 
 Readiness waits up to 5 seconds for content and a bounded network-quiet period, with a minimum 2-second early-success window and a bounded font wait. Canvas/SPA readiness remains heuristic. CSS/CSP/access-control enforcement remains enabled. Console CSP errors are categorized without exporting raw console text.
+
+## V0.3 extension
+
+The existing same-origin API adds `/api/prompts/generate`. `prompts/evidence.py` and `collect.js` collect a minimized, bounded server-owned snapshot from the retained selection or visible body. `deterministic.py` renders the measured eight-section prompt; `service.py` enforces generation admission and fallback. `provider.py` optionally sends reduced JSON to a configured compatible HTTPS chat endpoint through the existing validated egress proxy, then appends labelled interpretation. No provider key or raw inspection object is accepted from the frontend.
+
+`PromptPanel.jsx` extends the current screen below the workspace; existing selection/export controls remain. It sends references/preferences, provides a controlled editable textarea, copy fallback, stale-draft clearing and duplicate-request protection. No frontend HTML renderer or code execution is introduced. See [PROMPTS.md](PROMPTS.md).

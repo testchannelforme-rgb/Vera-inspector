@@ -1,106 +1,95 @@
-# Veyra Inspector V0.2
+# Veyra AI V0.3 — website recreation prompts
 
-An incremental upgrade of the V0.1 screenshot inspector. The dark UI, DOM selection, computed CSS and inspection JSON schema 0.1 are preserved. No paid API is used.
+An incremental prompt-generation feature for the V0.2 inspector. It preserves the existing preview, element selection, hover capture, computed CSS, JSON schema 0.1 and isolated browser services. No model, GPU or API key is required for local generation.
 
-**Delivery status:** smart URLs, diagnostics, readiness changes, startup scripts and an isolated public-browser implementation are supplied. The frontend build, HTTP/API behavior and unit tests ran here. This host cannot launch sandboxed Chromium and has no Docker, so real V0.2 website rendering, Roblox compatibility, container isolation and Codespaces rebuild/resume behavior are **not verified**. Read [TEST_REPORT.md](TEST_REPORT.md).
+**Verified here:** 165 Python tests and 15 frontend tests passed, plus the production frontend build and actual HTTP startup smoke check. **Not verified here:** real browser inspection in V0.3, Docker/Codespaces execution, visual tablet rendering or a live AI provider. This host lacks Docker and Chromium; its browser download failed and user-namespace creation is denied. See [TEST_REPORT.md](TEST_REPORT.md).
 
-The GitHub connection exposed no accessible repositories. The upgrade is based on the V0.1 source retained in this conversation, not a fetched snapshot of the current `Vera-inspector` repository. The distribution includes a guarded updater, a unified patch and the complete source for review. No remote repository was changed.
+The GitHub API returned 404 for `testchannelforme-rgb/Vera-inspector`. This update uses the retained V0.2 delivery, not a fetched copy of your latest repository. The guarded incremental updater is the intended application route. It refuses conflicting changes; do not replace your repository wholesale.
 
-## Apply the upgrade on your tablet
+## Apply and start on your Android tablet
 
-See [UPGRADE.md](UPGRADE.md). Do not replace or delete your repository. The updater checks every changed file, attempts nonconflicting three-way merges, creates backups and refuses to write if any conflict requires review. Unrelated files remain untouched.
-
-## Start public inspection in Codespaces
-
-1. Apply the update in the existing repository root.
-2. Open the command palette and choose **Codespaces: Rebuild Container**. The development image builds matching Chromium binaries/libraries and includes Docker-in-Docker for the separate browser stack. This first rebuild can take several minutes and uses your existing GitHub included compute/storage quota. No paid usage or credit card is required by the code; stop the Codespace when finished.
-3. In the repository terminal run:
+Upload `Veyra_AI_V0.3.zip` into your existing Codespaces repository using the Explorer upload action. In its terminal:
 
 ```bash
+git switch -c feature/v0.3-prompt-engine
+unzip -q Veyra_AI_V0.3.zip
+python3 veyra-v03-update/apply_update.py --check
+python3 veyra-v03-update/apply_update.py --apply
 bash start.sh --isolated
 ```
 
-4. Open **Ports → 8000 → Open in Browser**. Keep port visibility **Private**. No browser or gateway control port is published.
-5. Enter `example.com`, `www.roblox.com`, `react.dev`, or another valid public address. HTTPS is added when omitted. HTTP is supported explicitly. The backend performs the same normalization for the UI and API.
+Run `--apply` only if `--check` reports no conflicts. The updater backs up replaced files and leaves unrelated files alone. Read [UPGRADE.md](UPGRADE.md) for conflicts, review and test commands. If your working V0.2 environment already has its dependencies, no devcontainer change is needed. `--isolated` rebuilds the app with the new frontend and HTTPX dependency. On a fresh Codespace, choose **Codespaces: Rebuild Container** and let the existing setup finish first. Codespaces included quotas still apply; the application does not purchase resources.
 
-Public mode builds and starts the app, browser and egress gateway. The browser firewall permits new outbound connections only to the gateway on port 8888; IPv6 new connections are denied. The gateway resolves/checks destinations and connects to vetted numeric IPs. The startup command runs direct-network canary checks, then checks the real browser API. It stops public browsing if the isolation probe fails. **These container checks could not be run in the delivery environment.** The stack must be verified on the target host before relying on its isolation.
+Open **Ports → 8000 → Open in Browser**, with visibility **Private**. No public deployment or repository push is performed by the scripts.
 
-Docker requires a compatible Linux host, network-administration capability for the dedicated browser container's startup firewall, IPv4/IPv6 netfilter support and Chromium sandbox namespaces. The trusted development controller may have Docker/privileged capabilities through Docker-in-Docker; the website browser runs in a separate container, drops all capabilities before Chromium launches, and keeps Chromium's own sandbox. No development workspace, Docker socket or user account credentials are mounted into the browser.
+## Generate your first prompt
 
-Stop or restart without deleting source or secrets:
+1. Open `example.com` or another public website in the inspector.
+2. Tap an element. Keep using the existing inspector and JSON export normally.
+3. In **Generate AI Prompt**, choose Selected element, Selected section, or Full page · visible sample.
+4. Choose HTML + CSS, HTML + CSS + JavaScript, or React. The default detail is Detailed and style is Faithful recreation.
+5. Leave **Local · no API key or cost** selected, then press **Generate Prompt**.
+6. Review the measured values and accuracy notes. Edit the text directly and use **Copy Prompt**. If clipboard permission is unavailable, the text is selected for manual copying.
+7. **Regenerate** replaces your edits. Scrolling, selection, refreshing the image or opening a page clears the old draft. Capture Hover in the Motion tab before generation to include that selected element's observed style changes.
 
-```bash
-docker compose -f compose.inspection.yml stop
-bash start.sh --isolated
+Full page means a bounded sample of **currently visible content**, not an automatic scroll crawl. Section scope uses the nearest semantic ancestor, or immediate parent, and labels this heuristic. Exact breakpoints, hidden states and off-screen content are not claimed as inspected. No source code is generated or executed.
+
+## Optional AI adapter
+
+Local mode never contacts a model provider. AI mode requires deliberate administrator configuration and selection of **Optional AI + local fallback** in the UI. No paid account or live API call was used for these tests. A provider may charge or impose quotas; choose a currently available model and provider under your own budget before enabling it.
+
+Use Codespaces repository secrets for the key (preferred), or an ignored `.env` file in the repository root for Compose. Keep `.env` out of Git. These are all supported variables:
+
+| Variable | Default / meaning |
+| --- | --- |
+| `VEYRA_AI_ENABLED` | `false`; set to `true` to enable AI requests |
+| `VEYRA_AI_PROVIDER` | `openai-compatible`; display label, letters/numbers/`._-` only |
+| `VEYRA_AI_ENDPOINT` | `https://api.openai.com/v1/chat/completions`; full canonical HTTPS chat-completions endpoint, no query, credentials or fragment; port 443 only |
+| `VEYRA_AI_MODEL` | Empty; supply the provider's available chat model identifier |
+| `VEYRA_AI_API_KEY` | Empty; backend-only credential |
+| `VEYRA_AI_TIMEOUT_SECONDS` | `15`; accepted range 1–20 seconds |
+| `VEYRA_AI_MAX_OUTPUT_TOKENS` | `1500`; accepted range 128–2500 |
+| `VEYRA_AI_TOKEN_PARAMETER` | `max_completion_tokens`; use `max_tokens` only if required by your compatible provider |
+
+For Compose, an ignored `.env` may contain:
+
+```dotenv
+VEYRA_AI_ENABLED=true
+VEYRA_AI_PROVIDER=openai-compatible
+VEYRA_AI_ENDPOINT=https://api.openai.com/v1/chat/completions
+VEYRA_AI_MODEL=YOUR_AVAILABLE_MODEL_ID
+VEYRA_AI_API_KEY=YOUR_PRIVATE_KEY
 ```
 
-After a Codespace stop/start, run the same start command. It reuses stored random capabilities, reapplies firewall rules, checks browser connectivity, and retries a stale backend connection when necessary. Clean rebuild/resume behavior still needs an actual Codespaces test.
+Restart with `bash start.sh --isolated` after changing configuration. Only the app receives AI settings; the browser and gateway do not. For restricted local development, export these variables in the shell before `bash start.sh`; that script does not load `.env`. Never put credentials in Vite variables, frontend files, prompts or screenshots.
 
-## Restricted local development
+The adapter uses the chat-completions messages interface, no tools, no streaming and no automatic retries. It asks for three bounded interpretation fields and appends them to the eight-section measured prompt. AI prose is labelled interpretation, not observation. The credential is an HTTP header only. DNS validation and numeric-IP connection pinning reuse V0.2's egress gate; redirects and private endpoints are refused. A local/private model server is intentionally unsupported. Timeout, rate-limit, malformed response or missing configuration yields a useful local prompt. Wire-format behavior is mock-tested; a real configured model still needs verification.
 
-The direct/local browser remains an optional restricted mode. It cannot be changed into an unrestricted local browser by setting an environment flag. Use the isolated stack for arbitrary public hosts.
+## Tests and verification
 
 ```bash
 bash scripts/setup.sh
-bash start.sh
-```
-
-This serves frontend and backend on `http://127.0.0.1:8000`. The project `.venv/bin/python` is always used. Required local versions: Python 3.11+, Node 22.12+ or 24, npm, and a sandbox-capable non-root Chromium environment. The supplied devcontainer provides the matching browser libraries. Outside it, install required Linux libraries through your host's normal package management; Veyra no longer tries to modify third-party APT sources at startup.
-
-Optional exact hosts for restricted development:
-
-```bash
-export VEYRA_NETWORK_MODE=restricted
-export VEYRA_ALLOWED_HOSTS=example.com,www.example.com
-bash start.sh
-```
-
-Wildcards are rejected. Never expose either mode as an unrestricted public service; authentication and public-service abuse controls are outside this prototype.
-
-## What changed
-
-- URL input accepts bare hostnames and uses the backend's `/api/normalize` endpoint. It trims surrounding whitespace, adds HTTPS, canonicalizes IDN/IPv6/ports, rejects arbitrary text, unsupported schemes, credentials, malformed hosts and unsafe/alternate numeric IPs.
-- Isolated public mode uses a separate sandboxed browser and validating egress gateway, with an outbound firewall and unguessable private browser-control capability. Restricted local mode remains available.
-- Page rendering waits for bounded content/network readiness instead of a fixed 350 ms delay. It observes visible DOM content, completed images, fonts and pending requests. This is a heuristic, not proof that every SPA is ready.
-- Page diagnostics report HTTP status, navigation state, empty-content observations, blocked/failed resource hosts, JavaScript/console error categories and screenshot status. Queries, credentials and raw console text are omitted. Potential access-check messages are flagged; no bypass is attempted.
-- Navigation timeout, inaccessible/blocked site, empty content, screenshot failure, transfer/decode failure and browser failure are distinguished.
-- Startup diagnostics identify missing binaries, missing libraries, sandbox restrictions, unavailable browser service and missing isolation configuration. **Retry engine** reconnects safely; stale disconnected contexts are cleaned up.
-- The full `chromium` channel is used consistently, so a missing Headless Shell cannot silently select a different browser. Node/Python Playwright versions are pinned together. Browser/system packages are installed during clean image build, avoiding manual edits to a running Codespace and its stale Yarn repository.
-
-The UI still sends selection coordinates rather than remote clicks. Tap to select; swipe/wheel or Scroll buttons to scroll; use Motion → Capture hover and the existing JSON controls. Website HTML is escaped text evidence. Cross-origin DOM access is performed only inside the remote browser, never through an iframe bypass.
-
-## Tests
-
-```bash
+npm --prefix frontend test
+npm --prefix frontend run build
+.venv/bin/python -m pytest -q -rs
 bash scripts/test.sh --public
 ```
 
-Runs Node tests/build, unit and deterministic local browser tests, then the strict browser-startup probe. An unavailable browser makes acceptance fail even if unit tests pass. Deterministic local-site exceptions exist only in test fixtures.
+The final command also requires a successful sandboxed Chromium probe; unit tests alone cannot satisfy acceptance. Actual browser tests use a deterministic local fixture through a test-only policy exception. No production local-network exception was introduced.
 
-After the **isolated public stack** is ready:
+After starting the isolated stack, test public inspection and all prompt scopes through its live API:
 
 ```bash
 .venv/bin/python scripts/test_public.py
+.venv/bin/python scripts/test_prompt_public.py
 ```
 
-This checks `example.com`, JavaScript-driven `react.dev`, and Roblox through the actual API. It refuses unrestricted tests against the local/restricted browser. It writes real screenshots, inspection JSON and diagnostics only after each site's checks pass, under `artifacts/generated-v02`. Review those screenshots for complete rendering: HTTP 200 and a nonempty DOM alone do not prove Roblox compatibility.
+The prompt probe defaults to local generation and records only a public test site's results. To verify your configured AI provider deliberately, run `scripts/test_prompt_public.py --ai`; it sends reduced public evidence to that provider and may consume its quota. A fallback response does not count as live AI success. No live-provider test was performed here.
 
-Inspect environment/startup:
+Stop safely:
 
 ```bash
-bash scripts/doctor.sh
-bash scripts/doctor.sh --environment-only
-docker compose -f compose.inspection.yml logs --tail=80 browser gateway app
+docker compose -f compose.inspection.yml stop
 ```
 
-Do not share control endpoints, secret files, raw page console output or credentials. The UI's **Copy diagnostics** deliberately omits raw console messages and URL queries. Existing `artifacts` audit/smoke files outside `artifacts/v02` are legacy V0.1 evidence, not current V0.2 verification.
-
-## Blank previews and limitations
-
-The old allowlist could block CDN/API assets, the old short settle delay could capture an unhydrated page, and GET/HEAD-only routing could break HTTPS SPA API POSTs. These are compatibility risks found in source review, **not a demonstrated diagnosis of Roblox's blank page**. V0.2 permits bounded HTTPS API POSTs to validated public destinations, broadens hosts only in isolated mode and exports evidence to distinguish the cause.
-
-The preview is a screenshot, not an embedded website frame. A site's frame-embedding policy does not itself block the data-URL preview. Its own CSP can still block resources inside Chromium; diagnostics classify relevant console errors. Veyra's UI CSP permits screenshot data URLs. Frontend decoding failures are reported separately from browser screenshot failures.
-
-Service workers, WebSockets and large/media resources remain restricted. Plain HTTP proxying is GET/HEAD only; HTTPS can carry bounded API requests under Playwright policy. Fixed transfer/time/request limits can interrupt complex sites. Empty-content and access-check heuristics may miss canvas-only content or unusual site behavior. No CAPTCHA, authentication, paywall or automation restriction is bypassed. No Roblox success is claimed in this delivery.
-
-Inspect [SECURITY.md](SECURITY.md) before wider use. Inspection JSON stays at schema 0.1; diagnostic metadata is attached to frames/errors, not substituted for actual inspection values.
+See [SECURITY.md](SECURITY.md), [docs/PROMPTS.md](docs/PROMPTS.md), [docs/MODIFIED_FILES.md](docs/MODIFIED_FILES.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The original V0.2 runtime notes are retained in [docs/V02_RUNTIME.md](docs/V02_RUNTIME.md) as historical context. V0.3 has no authentication or public-service abuse protection; retain private forwarding.

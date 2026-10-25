@@ -2,12 +2,15 @@ import React,{useEffect,useRef,useState} from 'react';
 import {api} from './api.js';
 import Preview from './components/Preview.jsx';
 import Inspector from './components/Inspector.jsx';
+import PromptPanel from './components/PromptPanel.jsx';
 
 export default function App() {
   const [url,setUrl]=useState('https://example.com');
   const [viewport,setViewport]=useState('1280x800');
   const [session,setSession]=useState(null),[frame,setFrame]=useState(null),[inspection,setInspection]=useState(null);
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[health,setHealth]=useState(null),[diagnostics,setDiagnostics]=useState(null);
+  const [promptBusy,setPromptBusy]=useState(false);
+  const [browserBusy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[health,setHealth]=useState(null),[diagnostics,setDiagnostics]=useState(null);
+  const busy=browserBusy||promptBusy;
   const running=useRef(false),sessionRef=useRef(null);
   useEffect(()=>{api('/health',undefined,'GET').then(setHealth).catch(()=>setError('Backend is unavailable. Start it with bash start.sh.'));},[]);
   useEffect(()=>{
@@ -18,7 +21,7 @@ export default function App() {
     window.addEventListener('pagehide',close);return()=>window.removeEventListener('pagehide',close);
   },[session]);
   async function run(operation) {
-    if(running.current)return;
+    if(running.current||promptBusy)return;
     running.current=true;setBusy(true);setError('');setNotice('');
     try {await operation();}catch(e){setError((e.code?e.code+': ':'')+e.message);if(e.diagnostics)setDiagnostics(e.diagnostics);api('/health',undefined,'GET').then(setHealth).catch(()=>{});}finally{running.current=false;setBusy(false);}
   }
@@ -42,7 +45,7 @@ export default function App() {
     a.href=href;a.download='veyra-inspection.json';a.click();setTimeout(()=>URL.revokeObjectURL(href),1000);setNotice('Inspection JSON exported.');
   }
   return <div className="app-shell">
-    <header className="app-header"><div className="brand"><span className="brand-mark">V</span><div>VEYRA <span className="brand-sub">INSPECTOR</span></div><span className="version">v0.2</span></div><div className="header-status"><span className={`status-dot ${health?.status==='ready'?'ready':''}`}/>{health?.status==='ready'?'Chromium ready':health?'Browser unavailable':'Connecting…'}</div></header>
+    <header className="app-header"><div className="brand"><span className="brand-mark">V</span><div>VEYRA <span className="brand-sub">INSPECTOR</span></div><span className="version">v0.3</span></div><div className="header-status"><span className={`status-dot ${health?.status==='ready'?'ready':''}`}/>{health?.status==='ready'?'Chromium ready':health?'Browser unavailable':'Connecting…'}</div></header>
     <main>
       <div className="workspace-heading"><div><span className="eyebrow">WEBSITE INSPECTION ENGINE</span><h1>Look closer.</h1><p>Real elements. Real computed styles.</p></div><span className="mode-badge">{health?.networkMode==='isolated-public'?'ISOLATED PUBLIC SITES':'RESTRICTED DEVELOPMENT'}</span></div>
       <form className="toolbar" onSubmit={open}>
@@ -63,7 +66,8 @@ export default function App() {
         </section>
         <Inspector inspection={inspection} busy={busy} onHover={()=>action('hover',{frameId:frame.frameId,durationMs:1000,intervalMs:100})} onClear={()=>action('clear')} onExport={download} onCopy={()=>run(async()=>{if(!navigator.clipboard)throw new Error('Clipboard is unavailable. Use Export JSON.');await navigator.clipboard.writeText(serialized());setNotice('JSON copied to clipboard.');})}/>
       </div>
-      <footer>VEYRA AI <span>Milestone 01 · Inspection only · No AI services required</span></footer>
+      <PromptPanel session={session} frame={frame} inspection={inspection} busy={busy} aiAvailable={health?.prompts?.aiAvailable} onBusy={setPromptBusy}/>
+      <footer>VEYRA AI <span>Milestone 03 · Inspection + recreation prompts · Local mode requires no API key</span></footer>
     </main>
   </div>;
 }

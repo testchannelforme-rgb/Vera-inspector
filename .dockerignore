@@ -8,3 +8,5 @@
 .env.*
 artifacts
 *.zip
+.v02-backups
+veyra-v03-update
