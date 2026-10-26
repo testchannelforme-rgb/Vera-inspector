@@ -21,7 +21,7 @@ services:
       VEYRA_AI_TOKEN_PARAMETER: ${VEYRA_AI_TOKEN_PARAMETER:-max_completion_tokens}
     secrets: [proxy_password, control_token]
     volumes: [browser_status:/run/veyra:ro]
-    ports: ["127.0.0.1:8000:8000"]
+    ports: ["127.0.0.1:8001:8000"]
     networks: [control, internet]
     depends_on:
       browser: {condition: service_healthy}

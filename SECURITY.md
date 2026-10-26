@@ -1,3 +1,13 @@
+# V0.3.1 security preservation
+
+This accuracy update does not alter browser launch flags, network/proxy validation, Docker/Compose services, seccomp, devcontainer, credentials, origin/body restrictions or provider integration. No dependency upgrade is introduced. Only .dockerignore/.gitignore exclude the new installer folder/backups/ZIP; main.py changes version metadata only.
+
+Scored ancestor detection, candidate discovery, priority/byte admission and style factoring remain bounded. IDs/parents are not invented, and untrusted page strings stay quoted as data. Shared styles represent sanitized measured equality, not trusted authored instructions. CSS internal whitespace is preserved; privacy removals/length cuts are reported. Composed private ancestors are checked with a bounded fail-closed walk, and values/editable copy/HTML/cookies/storage/signed URLs remain excluded. Visible-text redaction still cannot guarantee removal of all personal information. Existing output remains an editable React textarea without executable HTML/code.
+
+The new packaged installer refuses wrong branches, dirty tracked source, baseline conflicts, symlink/path escapes and checksum mismatches. Rollback refuses later edits before restoring files. Neither implementation nor packaging changes main or deploys anything. Real browser/Docker/network-isolation execution was unavailable here; see TEST_REPORT.md. The following V0.3/V0.2 security context still applies.
+
+---
+
 # V0.3 prompt-generation security additions
 
 V0.2 browser sandboxing, isolated networks, firewall rules, proxy pinning, URL restrictions, quotas and private forwarding remain in place. Only the app service receives optional AI credentials; no credential is added to the browser service or frontend. The production app now includes pinned HTTPX for the optional adapter.

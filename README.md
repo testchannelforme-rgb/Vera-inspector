@@ -1,38 +1,54 @@
-# Veyra AI V0.3 — website recreation prompts
+# Veyra AI V0.3.1 — prompt accuracy upgrade
 
-An incremental prompt-generation feature for the V0.2 inspector. It preserves the existing preview, element selection, hover capture, computed CSS, JSON schema 0.1 and isolated browser services. No model, GPU or API key is required for local generation.
+This is a focused update to the **attached clean V0.3 source**. It improves section boundaries, prioritization, CSS organization and reconstruction guidance. It preserves the inspector, hover, JSON export, existing UI, three scopes, three targets/detail levels, no-key generation and optional AI enhancement. No new dependency version or browser/network setting is introduced.
 
-**Verified here:** 165 Python tests and 15 frontend tests passed, plus the production frontend build and actual HTTP startup smoke check. **Not verified here:** real browser inspection in V0.3, Docker/Codespaces execution, visual tablet rendering or a live AI provider. This host lacks Docker and Chromium; its browser download failed and user-namespace creation is denied. See [TEST_REPORT.md](TEST_REPORT.md).
+**Verified:** 214 Python tests and 34 Node tests passed, including exact style reconstruction and execution of the real collector against a synthetic DOM. The Vite production build passed. **Blocked:** 16 real-browser tests and the strict browser-startup probe because Chromium's executable is absent here. Docker/Codespaces, real-site V0.3.1 accuracy and live AI were not tested. Synthetic geometry is test data, not captured website evidence. See [TEST_REPORT.md](TEST_REPORT.md).
 
-The GitHub API returned 404 for `testchannelforme-rgb/Vera-inspector`. This update uses the retained V0.2 delivery, not a fetched copy of your latest repository. The guarded incremental updater is the intended application route. It refuses conflicting changes; do not replace your repository wholesale.
+## Install into your existing Codespace
 
-## Apply and start on your Android tablet
+Use [UPGRADE.md](UPGRADE.md). The ZIP contains changed files only, baseline copies for comparison, a complete manifest and a conservative installer. It refuses other branches, uncommitted tracked changes, mismatching baseline files, unsafe paths and corrupt payloads. It never auto-stashes, resets or merges your work.
 
-Upload `Veyra_AI_V0.3.zip` into your existing Codespaces repository using the Explorer upload action. In its terminal:
+After saving your current work, upload `Veyra_AI_V0.3.1_Update.zip` to the repository root using the Explorer upload action. In the Codespaces terminal:
 
 ```bash
-git switch -c feature/v0.3-prompt-engine
-unzip -q Veyra_AI_V0.3.zip
-python3 veyra-v03-update/apply_update.py --check
-python3 veyra-v03-update/apply_update.py --apply
+git status --short
+git switch -c feature/v0.3.1-prompt-accuracy
+unzip -q Veyra_AI_V0.3.1_Update.zip
+python3 veyra-v031-update/apply_update.py --check
+python3 veyra-v031-update/apply_update.py --apply
 bash start.sh --isolated
 ```
 
-Run `--apply` only if `--check` reports no conflicts. The updater backs up replaced files and leaves unrelated files alone. Read [UPGRADE.md](UPGRADE.md) for conflicts, review and test commands. If your working V0.2 environment already has its dependencies, no devcontainer change is needed. `--isolated` rebuilds the app with the new frontend and HTTPX dependency. On a fresh Codespace, choose **Codespaces: Rebuild Container** and let the existing setup finish first. Codespaces included quotas still apply; the application does not purchase resources.
+If that branch already exists, use `git switch feature/v0.3.1-prompt-accuracy` instead of `git switch -c`. Stop if `git status` shows unsaved tracked changes; commit or back them up first. Apply only after the check passes. Modified committed source that differs from the attachment also requires manual reconciliation; no file is overwritten to force compatibility.
 
-Open **Ports → 8000 → Open in Browser**, with visibility **Private**. No public deployment or repository push is performed by the scripts.
+Open forwarded port **8000**, visibility **Private**. The existing isolated stack rebuilds the app/frontend. A working V0.3 Codespace needs no devcontainer change. On a fresh environment, use **Codespaces: Rebuild Container** and let the existing setup finish. Codespaces quotas still apply; no paid resource is purchased by the code.
 
-## Generate your first prompt
+Rollback, before making further source edits:
 
-1. Open `example.com` or another public website in the inspector.
-2. Tap an element. Keep using the existing inspector and JSON export normally.
-3. In **Generate AI Prompt**, choose Selected element, Selected section, or Full page · visible sample.
-4. Choose HTML + CSS, HTML + CSS + JavaScript, or React. The default detail is Detailed and style is Faithful recreation.
-5. Leave **Local · no API key or cost** selected, then press **Generate Prompt**.
-6. Review the measured values and accuracy notes. Edit the text directly and use **Copy Prompt**. If clipboard permission is unavailable, the text is selected for manual copying.
-7. **Regenerate** replaces your edits. Scrolling, selection, refreshing the image or opening a page clears the old draft. Capture Hover in the Motion tab before generation to include that selected element's observed style changes.
+```bash
+python3 veyra-v031-update/apply_update.py --rollback latest
+bash start.sh --isolated
+```
 
-Full page means a bounded sample of **currently visible content**, not an automatic scroll crawl. Section scope uses the nearest semantic ancestor, or immediate parent, and labels this heuristic. Exact breakpoints, hidden states and off-screen content are not claimed as inspected. No source code is generated or executed.
+Rollback verifies installed-file hashes before restoring originals/removing newly added files. It refuses to overwrite later edits. Backups are under `.v031-backups/update-*`; unrelated files are preserved.
+
+## What improves
+
+- Section scope scores local semantic regions, painted component boundaries, measured layout/spacing and visible child groups. It rejects page landmarks, disproportionate tall ancestors and containers grouping unrelated landmarks. It reports reasons/candidates and a predictable local fallback. Explicit main/body/html selections in section mode ask you to select a local child. Element/page scopes remain available.
+- Bounded discovery reaches later sibling headings, controls and images. The selected ancestry is pinned; original IDs, parent paths and DOM sibling indices are retained. The renderer prioritizes important nodes with complete ancestor paths instead of taking a prefix.
+- Every captured **sanitized** CSS property for an included node is retained, including Concise output. Equal values are factored into exact shared groups plus node-specific mappings. This is not proof of inheritance or original CSS classes. Length-bounded/privacy-modified values are flagged.
+- Prompts clearly organize hierarchy, content/assets, geometry/parent deltas, layout, typography, appearance, interactions, responsiveness, accessibility and limitations. Viewport intersection is geometric evidence, not a proof of pixel visibility or clipping.
+- URL-free computed gradients, additional flex/spacing/overflow/font properties and DOM accessibility attributes improve evidence. Signed asset URLs, form values, editable text, HTML, cookies and storage remain excluded. Private composed/shadow ancestors are checked conservatively.
+
+## Use the feature
+
+1. Open a public site and tap a heading, card title, navigation item or button.
+2. Choose **Selected section** and **Local**, then Generate Prompt. Review the reported boundary tag and reasons; compare it visually with the intended component.
+3. Check original node IDs/parent hierarchy and exact shared style references. Merge referenced groups plus node-specific values to recover included CSS.
+4. Try all targets and detail levels. Detail changes coverage rather than dropping measured properties. An unusually deep selected path can exceed the nominal Concise node count to preserve context.
+5. Existing edit/copy/regenerate, hover capture and JSON export work as before. Wait for the existing three-generation/session/minute limit when necessary.
+
+Only the current visible page sample is inspected; no scroll crawl, hidden-state activation, breakpoint discovery or source-code generation is added. Recommendations and AI interpretation remain labelled separately from measurements. Section segmentation is heuristic, not perfect. Follow [the manual acceptance checklist](docs/V031_ACCEPTANCE.md) on your working host before claiming real-site accuracy.
 
 ## Optional AI adapter
 
@@ -65,31 +81,27 @@ Restart with `bash start.sh --isolated` after changing configuration. Only the a
 
 The adapter uses the chat-completions messages interface, no tools, no streaming and no automatic retries. It asks for three bounded interpretation fields and appends them to the eight-section measured prompt. AI prose is labelled interpretation, not observation. The credential is an HTTP header only. DNS validation and numeric-IP connection pinning reuse V0.2's egress gate; redirects and private endpoints are refused. A local/private model server is intentionally unsupported. Timeout, rate-limit, malformed response or missing configuration yields a useful local prompt. Wire-format behavior is mock-tested; a real configured model still needs verification.
 
-## Tests and verification
+## Test commands
 
 ```bash
 bash scripts/setup.sh
+.venv/bin/python -m pytest -q -rs
 npm --prefix frontend test
 npm --prefix frontend run build
-.venv/bin/python -m pytest -q -rs
 bash scripts/test.sh --public
 ```
 
-The final command also requires a successful sandboxed Chromium probe; unit tests alone cannot satisfy acceptance. Actual browser tests use a deterministic local fixture through a test-only policy exception. No production local-network exception was introduced.
+The last command includes the strict sandboxed Chromium probe. Unit/synthetic tests do not satisfy browser acceptance when that probe fails. The new browser cases are in `backend/tests/test_prompt_browser.py` and use `backend/tests/fixtures/accuracy.html` under the existing test-only local-site exception; production URL protections are unchanged.
 
-After starting the isolated stack, test public inspection and all prompt scopes through its live API:
+After starting the real isolated stack:
 
 ```bash
 .venv/bin/python scripts/test_public.py
 .venv/bin/python scripts/test_prompt_public.py
 ```
 
-The prompt probe defaults to local generation and records only a public test site's results. To verify your configured AI provider deliberately, run `scripts/test_prompt_public.py --ai`; it sends reduced public evidence to that provider and may consume its quota. A fallback response does not count as live AI success. No live-provider test was performed here.
+Both scripts predate this update. The prompt probe defaults to local mode. Its `--ai` flag deliberately sends public evidence to your configured provider and can consume quota; use it only under your chosen budget. No live AI was called here.
 
-Stop safely:
+Stop with `docker compose -f compose.inspection.yml stop`. No deployment, remote push, PR or changes to main are made by this package.
 
-```bash
-docker compose -f compose.inspection.yml stop
-```
-
-See [SECURITY.md](SECURITY.md), [docs/PROMPTS.md](docs/PROMPTS.md), [docs/MODIFIED_FILES.md](docs/MODIFIED_FILES.md), and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The original V0.2 runtime notes are retained in [docs/V02_RUNTIME.md](docs/V02_RUNTIME.md) as historical context. V0.3 has no authentication or public-service abuse protection; retain private forwarding.
+See [change list](docs/MODIFIED_FILES.md), [prompt contract](docs/PROMPTS.md), [accuracy design](docs/V031_ACCURACY.md), [security](SECURITY.md), and [test report](TEST_REPORT.md). Existing V0.2 runtime notes are historical context only.

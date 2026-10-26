@@ -10,3 +10,6 @@ artifacts
 *.zip
 .v02-backups
 veyra-v03-update
+
+.v031-backups
+veyra-v031-update
