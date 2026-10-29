@@ -12,6 +12,7 @@ class PromptRequest(StrictModel):
     detail: Literal['concise', 'detailed', 'highly-detailed'] = 'detailed'
     style: Literal['faithful', 'responsive', 'accessible'] = 'faithful'
     mode: Literal['auto', 'local'] = 'local'
+    preset: Literal['faithful', 'responsive-first', 'accessible-implementation', 'clean-production-code', 'maximum-visual-detail'] = 'faithful'
 
 
 class PromptResponse(StrictModel):

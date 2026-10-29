@@ -1,7 +1,7 @@
 """A useful renderer based only on measured evidence, with labelled recommendations."""
 import json
 from collections import defaultdict
-from .selection import selection_plan
+from .presets import PRESETS, selected_evidence
 from .style_groups import factor_styles, category
 from .composition import summary_lines, detail_lines, relationships
 
@@ -57,8 +57,8 @@ def style_section(factored,nodes,kind,title):
 
 def render_prompt(evidence, request, ai=None):
     nodes=evidence.get('nodes',[])
-    maximum={'concise':4,'detailed':12,'highly-detailed':28}[request.detail]
-    chosen,sample=selection_plan(nodes,maximum)
+    chosen,sample=selected_evidence(evidence,request)
+    preset_label,preset_guidance=PRESETS[request.preset]
     root=chosen[0] if chosen else None
     viewport=evidence.get('viewport',{})
     width,height=viewport.get('width','unavailable'),viewport.get('height','unavailable')
@@ -89,6 +89,7 @@ def render_prompt(evidence, request, ai=None):
         '', '## 1. Objective',
         f'Recreate the observed {request.scope}: '+(f'<{root["tag"]}>' if root else 'target unavailable')+f' from {source.get("origin","source unavailable")}.',
         TARGETS[request.target],STYLE[request.style],
+        f'Implementation preset: {preset_label}; its priorities are recommendations in section 7.',
         'Build the described target in your coding tool. Veyra supplies this prompt only; do not add unobserved sections, decorative effects or behavior.',
         '', '## 2. Page or component structure',f'Boundary: {boundary}. Node IDs and parent IDs refer to the captured DOM and remain unchanged. Indentation preserves captured ancestry, not an invented component tree. Open-shadow children explicitly reference their host; light/shadow child lists remain distinct and their own sibling indices are preserved.',
         *hierarchy(chosen)]
@@ -144,7 +145,15 @@ def render_prompt(evidence, request, ai=None):
         'Implement only verified states as faithful recreation. Label proposed keyboard/focus behavior and missing destinations; do not auto-submit forms or invent navigation routes.',
         '', '## 6. Responsive behavior',f'Observed: one viewport, {width} × {height}. No exact CSS breakpoints or alternative mobile layout were measured.',
         'Recommendation: preserve semantic order, avoid overflow and constrain images. Propose fluid sizing/content-driven breakpoints separately and verify by inspecting additional viewports; never present those proposals as measured behavior.',
-        '', '## 7. Implementation requirements',TARGETS[request.target],
+        '', '## 7. Implementation requirements',
+        'Use the implementation format specified in section 1; preserve the eight-section evidence contract.',
+        '### Build sequence — recommendations, not recovered source',
+        '1. Establish semantic structure from node IDs and parent paths; propose component boundaries only for coherent captured subtrees.',
+        '2. Implement parent grid/flex relationships before matching child typography and decoration. Rectangles guide validation, not blanket absolute positioning.',
+        '3. Materialize referenced CSS groups plus per-node overrides exactly; retain gradient stops, mask/clip relationships and pseudo-element ownership. Do not replace attributed paint with a guessed solid color.',
+        '4. Add only observed interaction endpoints. Keep unobserved keyboard/focus behavior explicitly recommended and do not invent destinations.',
+        '5. List missing assets/fonts and verification tasks, then compare the implementation at the captured viewport. Test proposed responsive layouts separately.',
+        f'Preset-specific implementation priority: {preset_label}. {preset_guidance}',
         '### Observed accessibility evidence']
     for n in chosen:
         if n.get('role') or n.get('accessibility'):lines.append(f'- Node {n["id"]}: role attribute {quote(n.get("role",""))}; DOM accessibility attributes {quote(n.get("accessibility",{}))}. The complete accessible name/tree is not verified.')

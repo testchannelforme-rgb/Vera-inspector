@@ -34,7 +34,7 @@ async def test_tablet_ui_selection_hover_export(browser_manager,fixture_site,mon
         context=await manager.browser.new_context(viewport={'width':1024,'height':900},accept_downloads=True)
         page=await context.new_page()
         errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
-        await page.goto(f'http://127.0.0.1:{port}')
+        await page.goto(f'http://127.0.0.1:{port}/#/inspector')
         await page.get_by_label('Website URL').fill(fixture_site+'/')
         await page.get_by_role('button',name='Open website').click()
         preview=page.get_by_role('button',name='Select an element in the website screenshot')

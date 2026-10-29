@@ -95,7 +95,7 @@ def test_streamed_oversized_body(client):
 def test_served_frontend_build(client):
     import re
     response=client.get('/')
-    assert response.status_code==200 and '<title>Veyra Inspector</title>' in response.text
+    assert response.status_code==200 and '<title>VEYRA AI — See the detail. Build the vision.</title>' in response.text
     for asset in re.findall(r'(?:src|href)="(/assets/[^"]+)"',response.text):
         assert client.get(asset).status_code==200
     assert response.headers['x-frame-options']=='DENY'

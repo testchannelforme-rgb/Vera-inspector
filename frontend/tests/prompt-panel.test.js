@@ -6,12 +6,8 @@ import React from 'react';
 import TestRenderer,{act} from 'react-test-renderer';
 import {transformWithOxc} from 'vite';
 
-const file=new URL('../src/components/PromptPanel.jsx',import.meta.url);
-let {code}=await transformWithOxc(await readFile(file,'utf8'),file.pathname,{jsx:{runtime:'classic'}});
-for(const [specifier,target] of [['react','../node_modules/react/index.js'],['../api.js','../src/api.js'],['../prompt-utils.js','../src/prompt-utils.js']]) {
-  code=code.replaceAll(`from "${specifier}"`,`from "${new URL(target,import.meta.url).href}"`);
-}
-const {default:PromptPanel}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+import {loadComponent} from './load-component.js';
+const {default:PromptPanel}=await import(await loadComponent(new URL('../src/components/PromptPanel.jsx',import.meta.url)));
 globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 
 const response={prompt:'Measured 160px button',mode:'fallback',warnings:['Visible only'],evidenceSummary:{nodeCount:1,boundary:'selected element'}};

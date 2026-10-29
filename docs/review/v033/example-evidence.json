@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "0.3-evidence",
+  "scope": "section",
+  "boundary": "fixture section",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "scroll": {
+    "x": 0,
+    "y": 0
+  },
+  "truncated": false,
+  "excluded": 0,
+  "source": {
+    "origin": "https://example.com",
+    "capturedAt": "2026-10-29T00:00:00Z"
+  },
+  "nodes": [],
+  "sampling": {
+    "omitted": 0,
+    "invalid": 0,
+    "contextExpanded": false
+  },
+  "hover": null
+}

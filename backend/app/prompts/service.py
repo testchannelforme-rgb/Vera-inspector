@@ -7,6 +7,7 @@ from ..browser_manager import SessionError
 from .deterministic import render_prompt
 from .provider import CompatibleProvider, ProviderConfig, ProviderFailure
 from .schemas import PromptResponse
+from .report import quality_report
 
 
 class PromptService:
@@ -41,4 +42,5 @@ class PromptService:
             provider=self.config.name if ai else None,model=self.config.model if ai else None,warnings=warnings,
             evidenceSummary={'scope':request.scope,'rootTag':evidence['nodes'][0]['tag'],'boundary':evidence['boundary'],
                              'nodeCount':len(evidence['nodes']),'viewport':evidence['viewport'],'truncated':evidence['truncated'],
-                             'capturedAt':evidence['source']['capturedAt']})
+                             'capturedAt':evidence['source']['capturedAt'],
+                             'qualityReport':quality_report(evidence,request,warnings)})

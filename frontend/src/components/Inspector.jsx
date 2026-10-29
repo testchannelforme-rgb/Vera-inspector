@@ -5,13 +5,13 @@ function Values({data}) {
 }
 export default function Inspector({inspection,busy,onHover,onClear,onCopy,onExport}) {
   const [tab,setTab]=useState('Styles');
-  if(!inspection) return <aside className="inspector"><div className="panel-title">Inspector <span className="badge">LIVE DOM</span></div><div className="inspector-empty"><div className="selection-icon">⌖</div><h3>No element selected</h3><p>Select something in the preview to see its actual styles, geometry and animation data.</p></div></aside>;
+  if(!inspection) return <aside className="inspector" aria-label="Element inspector"><div className="panel-title">Inspector <span className="badge">LIVE DOM</span></div><div className="inspector-empty"><div className="selection-icon">⌖</div><h3>No element selected</h3><p>Select something in the preview to see its actual styles, geometry and animation data.</p></div></aside>;
   const {element,geometry,animations}=inspection;
-  return <aside className="inspector">
+  return <aside className="inspector" aria-label="Element inspector">
     <div className="panel-title">Inspector <button className="text-button" disabled={busy} onClick={onClear}>Clear</button></div>
     <div className="element-summary"><div className="element-tag">&lt;{element.tagName}&gt; <span className="badge">SELECTED</span></div><code className="selector">{element.selector}</code><p>{element.text||'No text content'}</p><div className="dimension-row"><span>{Math.round(geometry.width*100)/100} <small>W</small></span><span>{Math.round(geometry.height*100)/100} <small>H</small></span><span>{Math.round(geometry.x)}, {Math.round(geometry.y)} <small>X,Y</small></span></div></div>
-    <div className="tabs" role="tablist" aria-label="Inspector sections">{['Styles','HTML','Motion','JSON'].map(t=><button key={t} role="tab" aria-selected={t===tab} onClick={()=>setTab(t)}>{t}</button>)}</div>
-    <div className="inspector-content" role="tabpanel" aria-label={tab}>
+    <div className="tabs" role="tablist" aria-label="Inspector sections" onKeyDown={e=>{const labels=['Styles','HTML','Motion','JSON'];let index=labels.indexOf(tab);if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();index=e.key==='Home'?0:e.key==='End'?3:(index+(e.key==='ArrowRight'?1:3))%4;setTab(labels[index]);e.currentTarget.querySelectorAll('[role="tab"]')[index]?.focus();}}}>{['Styles','HTML','Motion','JSON'].map(t=><button key={t} role="tab" id={`inspection-${t.toLowerCase()}`} aria-controls="inspection-tab-panel" tabIndex={t===tab?0:-1} aria-selected={t===tab} onClick={()=>setTab(t)}>{t}</button>)}</div>
+    <div className="inspector-content" role="tabpanel" id="inspection-tab-panel" aria-labelledby={`inspection-${tab.toLowerCase()}`} aria-label={tab}>
       {tab==='Styles'&&<>
         {Object.entries(inspection.styleGroups).map(([group,values])=><details key={group} open={group==='appearance'||group==='typography'}><summary>{group}</summary><Values data={values}/></details>)}
         <details><summary>Element & geometry</summary><Values data={{id:element.id,classes:element.classes.join(' '),...geometry,role:element.accessibility.role,name:element.accessibility.name,selectorUnique:element.selectorUnique,selectorScope:element.selectorScope}}/></details>

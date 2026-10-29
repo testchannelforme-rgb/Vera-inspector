@@ -239,7 +239,7 @@ def test_generate_api_references_only_and_errors(monkeypatch):
         assert response.json()['mode']=='fallback'
         assert client.post('/api/prompts/generate',json={**body,'inspection':raw()},headers=HEADERS).status_code==422
         assert client.post('/api/prompts/generate',json={**body,'sessionId':'missing'},headers=HEADERS).status_code==404
-        assert client.get('/api/health').json()['version']=='0.3.2'
+        assert client.get('/api/health').json()['version']=='0.3.3'
         assert 'key' not in json.dumps(client.get('/api/health').json())
 
 @pytest.mark.asyncio

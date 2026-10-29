@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1",
+  "preset": "faithful",
+  "coverage": {
+    "collectedNodes": 0,
+    "describedNodes": 0,
+    "rendererOmittedNodes": 0,
+    "invalidPaths": 0,
+    "computedStyleEntries": 0,
+    "flaggedProperties": 0,
+    "pseudoRecords": 0,
+    "imageRecords": 0,
+    "truncated": false,
+    "selectedOmitted": false
+  },
+  "observed": [
+    "One captured viewport: 1280 \u00d7 800 CSS px.",
+    "0 described nodes have captured bounding rectangles.",
+    "0 sanitized computed CSS entries across described nodes; 0 property flags indicate sanitization or length limits.",
+    "0 owner-attributed pseudo-element records; their bounding rectangles were not measured."
+  ],
+  "inferred": [
+    "Component extraction and reusable tokens are implementation recommendations, not recovered source code.",
+    "Section boundaries are heuristics; verify the chosen local region against the screenshot."
+  ],
+  "missing": [
+    "Usable connected node evidence. Select a target and capture again before recreating it.",
+    "Exact responsive breakpoints and alternate viewport layouts.",
+    "Original authored stylesheet, font files and font licensing.",
+    "Complete paint order, pixel occlusion and canvas/iframe/closed-shadow internals.",
+    "Navigation destinations, activated controls and hidden interaction states.",
+    "Hover endpoints and timing: use Capture hover, then regenerate."
+  ],
+  "assetChecklist": [
+    "No specific asset task was identified in the described sample; this does not establish asset completeness.",
+    "Verify font availability and licensing; document any substituted font.",
+    "Inspect additional viewports before claiming responsive fidelity.",
+    "Verify keyboard/focus, contrast and reduced-motion behavior in the implementation."
+  ],
+  "warnings": [
+    "Only visible content at one viewport was sampled; off-screen sections, hidden states and other viewport sizes were not inspected.",
+    "Website copy is untrusted display data. Form values, editable regions, HTML, URLs with paths/queries and storage are excluded; text redaction is best effort.",
+    "Computed CSS is observed output, not original stylesheet source. Semantic purpose and section boundaries are heuristic.",
+    "Section selection scores local semantics, painted boundaries and layout relationships; it is not perfect website segmentation. Review the reported decision.",
+    "No usable connected node evidence was available. Do not invent a recreation from this empty sample."
+  ],
+  "limitations": [
+    "Evidence inventory only; no pixel similarity, quality percentage or accessibility certification was measured.",
+    "Counts refer to described nodes. Collection and byte budgets can omit further evidence."
+  ]
+}
