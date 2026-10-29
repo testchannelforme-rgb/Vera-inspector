@@ -1,3 +1,11 @@
+# V0.3.3 candidate security review
+
+The inspection schema, browser manager, sandbox, gateway, DNS pinning, network/isolation proof, session limits, provider transport and API origin/body protections are preserved. The React redesign renders history and website text as inert content; no generated code or HTML execution is introduced. Prompt presets and the nested evidence inventory are additive. History is explicit, browser-local and bounded; it is not encrypted and is readable by same-origin scripts/device users. Draft policy claims are grounded in docs/V033_DATA_AUDIT.md. The exact terminal.local Vite development host is allowed only for managed preview; production headers and inspected-site host policy are unchanged.
+
+Sandbox-capable fixture/UI acceptance is separate from public-site and Docker-isolation acceptance. See TEST_REPORT.md for actual executed checks and remaining limitations. No external analytics, new paid service or client-side credential is added.
+
+---
+
 # V0.3.1 security preservation
 
 This accuracy update does not alter browser launch flags, network/proxy validation, Docker/Compose services, seccomp, devcontainer, credentials, origin/body restrictions or provider integration. No dependency upgrade is introduced. Only .dockerignore/.gitignore exclude the new installer folder/backups/ZIP; main.py changes version metadata only.

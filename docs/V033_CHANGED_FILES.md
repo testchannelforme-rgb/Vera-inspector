@@ -1,9 +1,11 @@
 # V0.3.3 candidate changed files
 
-Relative to verified V0.3.2 commit `349db3b671fc77c543b5073cdb85cd9a0a115b6e`. Generated browser screenshots may be added after acceptance.
+Relative to verified V0.3.2 commit `349db3b671fc77c543b5073cdb85cd9a0a115b6e`. Includes final acceptance evidence.
 
 - `README.md`
+- `SECURITY.md`
 - `TEST_REPORT.md`
+- `UPGRADE.md`
 - `backend/app/main.py`
 - `backend/app/prompts/deterministic.py`
 - `backend/app/prompts/presets.py`
@@ -11,6 +13,7 @@ Relative to verified V0.3.2 commit `349db3b671fc77c543b5073cdb85cd9a0a115b6e`. G
 - `backend/app/prompts/schemas.py`
 - `backend/app/prompts/service.py`
 - `backend/tests/test_api.py`
+- `backend/tests/test_browser.py`
 - `backend/tests/test_prompts.py`
 - `backend/tests/test_ui.py`
 - `backend/tests/test_v033_prompts.py`
@@ -27,6 +30,17 @@ Relative to verified V0.3.2 commit `349db3b671fc77c543b5073cdb85cd9a0a115b6e`. G
 - `docs/review/v033/example-evidence.json`
 - `docs/review/v033/prompt-after.md`
 - `docs/review/v033/prompt-before.md`
+- `docs/review/v033/pytest-codespace.txt`
+- `docs/review/v033/pytest-public.txt`
+- `docs/review/v033/screenshots/desktop-landing.png`
+- `docs/review/v033/screenshots/desktop-workspace.png`
+- `docs/review/v033/screenshots/evidence-report.png`
+- `docs/review/v033/screenshots/logo-concepts.png`
+- `docs/review/v033/screenshots/mobile-landing.png`
+- `docs/review/v033/screenshots/mobile-workspace.png`
+- `docs/review/v033/screenshots/prompt-studio.png`
+- `docs/review/v033/screenshots/tablet-landing.png`
+- `docs/review/v033/screenshots/tablet-workspace.png`
 - `frontend/index.html`
 - `frontend/package-lock.json`
 - `frontend/package.json`

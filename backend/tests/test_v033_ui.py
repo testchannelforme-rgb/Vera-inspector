@@ -66,6 +66,9 @@ async def test_candidate_navigation_tutorial_legal_and_responsive_screenshots(br
                 if path=='brand':assert await page.locator('.logo-options img').count()==3
             await page.set_viewport_size({'width':1440,'height':1000});await page.goto(base+'/#/brand')
             await page.screenshot(path=str(SHOTS/'logo-concepts.png'),full_page=True)
+            await page.locator('.footer-links').get_by_role('link',name='About',exact=True).click()
+            await expect(page.get_by_role('heading',level=1)).to_have_text('Make the details useful.')
+            await page.wait_for_function('scrollY === 0')
             await page.goto(base+'/#/inspector')
             await page.get_by_role('button',name='Start tutorial',exact=True).click()
             await expect(page.get_by_role('heading',name='Open a website',exact=True)).to_be_visible()
@@ -131,7 +134,7 @@ async def test_candidate_real_inspection_prompt_reports_exports_and_history(brow
             await page.get_by_role('tab',name='History',exact=True).click();await page.get_by_role('button',name='Duplicate UI edited',exact=True).click()
             await page.get_by_role('button',name='Delete UI edited · copy',exact=True).click();await page.get_by_role('button',name='Confirm delete version',exact=True).click()
             assert await page.get_by_role('button',name='Restore UI edited',exact=True).count()==1
-            await page.get_by_role('link',name='Data preferences',exact=True).click();await page.get_by_role('checkbox').uncheck()
+            await page.get_by_role('link',name='Data preferences',exact=True).click();await page.get_by_role('checkbox').click();await expect(page.get_by_role('checkbox')).to_be_checked()
             await page.get_by_role('button',name='Delete saved versions & disable',exact=True).click()
             assert await page.evaluate('localStorage.getItem("veyra.prompt-history.v1")') is None
             assert not await page.evaluate('JSON.parse(localStorage.getItem("veyra.preferences.v1")).historyEnabled')
