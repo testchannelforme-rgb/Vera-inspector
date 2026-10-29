@@ -29,6 +29,7 @@ class Project(StrictModel):
 class GenerateRequest(PromptRequest):
     format: Literal['vanilla', 'react'] = 'vanilla'
     consent: bool = False
+    autoRepair: bool = False
 
 class RefineRequest(StrictModel):
     generationId: str = Field(pattern=r'^[a-f0-9]{32}$')

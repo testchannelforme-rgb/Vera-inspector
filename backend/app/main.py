@@ -33,6 +33,9 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
 
     prompt_service = prompt_service or PromptService()
     studio = studio_service or StudioService()
+    from .studio.comparison import Comparator,capture_reference
+    from .studio.assets import embed_assets
+    studio.comparator=Comparator(manager)
     try:
         dirty=bool(subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=Path(__file__).resolve().parents[2],stderr=subprocess.DEVNULL,text=True,timeout=2).strip())
         revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=Path(__file__).resolve().parents[2],stderr=subprocess.DEVNULL,text=True,timeout=2).strip()
@@ -53,7 +56,7 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.4.0', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.4.1', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -122,7 +125,7 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.4.0','commit':revision,'sourceDirty':dirty,'studio':studio.config(),'prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.4.1','commit':revision,'sourceDirty':dirty,'studio':studio.config(),'prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
                 'schemaVersion':'0.1'}
 
     @app.post('/api/browser/retry')
@@ -235,7 +238,9 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
         async with studio.admission():
             async with manager.operation(body.sessionId) as session:
                 evidence=await collect_evidence(session,body)
-            return await studio.generate(evidence,body)
+                await embed_assets(session,evidence)
+                reference=await capture_reference(session,evidence)
+            return await studio.generate(evidence,body,reference)
 
     @app.post('/api/studio/refine')
     async def refine_code(body: RefineRequest):

@@ -4,7 +4,7 @@ import {editProject,exportProject,saveDownload,fidelityDiagnostics} from '../stu
 const CodeEditor=React.lazy(()=>import('./CodeEditor.jsx'));
 
 export default function CodeStudio({session,frame,inspection,busy=false,onBusy=()=>{}}){
- const [config,setConfig]=useState(null),[format,setFormat]=useState('vanilla'),[scope,setScope]=useState('element'),[mode,setMode]=useState('local'),[consent,setConsent]=useState(false);
+ const [config,setConfig]=useState(null),[format,setFormat]=useState('vanilla'),[scope,setScope]=useState('element'),[mode,setMode]=useState('local'),[consent,setConsent]=useState(false),[autoRepair,setAutoRepair]=useState(false);
  const [project,setProject]=useState(null),[result,setResult]=useState(null),[file,setFile]=useState('index.html'),[original,setOriginal]=useState(null),[history,setHistory]=useState([]);
  const [working,setWorking]=useState(false),[error,setError]=useState(''),[status,setStatus]=useState(''),[instruction,setInstruction]=useState(''),[refineConsent,setRefineConsent]=useState(false);
  const [metrics,setMetrics]=useState(null);
@@ -21,7 +21,7 @@ export default function CodeStudio({session,frame,inspection,busy=false,onBusy=(
   if(running.current)return;running.current=true;const token=epoch.current;
   setWorking(true);onBusy(true);setError('');setStatus(mode==='auto'?'Generating with the configured AI model…':'Reconstructing measured structure and styles…');
   try{
-   const response=await api('/studio/generate',{sessionId:session,frameId:frame.frameId,referenceId:inspection?.element?.referenceId||null,scope,format,target:format==='react'?'react':'html-css-js',mode,consent});
+   const response=await api('/studio/generate',{sessionId:session,frameId:frame.frameId,referenceId:inspection?.element?.referenceId||null,scope,format,target:format==='react'?'react':'html-css-js',mode,consent,autoRepair},'POST',120000);
    if(token!==epoch.current){setStatus('Selection changed during generation. Current code was preserved; generate again.');return;}
    remember();setProject(response.project);setOriginal(response.project);setResult(response);setFile(format==='react'?'App.jsx':'index.html');setStatus(response.summary+' · '+(response.mode==='ai'?'AI: '+response.model:'Local measured reconstruction'));setPreview('');
   }catch(e){setError(e.message);setStatus('Generation failed. Existing code is preserved.');}finally{running.current=false;setWorking(false);onBusy(false);}
@@ -43,18 +43,20 @@ export default function CodeStudio({session,frame,inspection,busy=false,onBusy=(
  function restore(){const last=history.at(-1);if(!last)return;setProject(last.project);setResult(last.result);setOriginal(last.original);if(!last.project.files[file])setFile(Object.keys(last.project.files)[0]);setHistory(h=>h.slice(0,-1));setStatus('Previous project restored.');}
  async function copy(){try{await navigator.clipboard.writeText(project.files[file]);setStatus(file+' copied.');}catch{setError('Clipboard unavailable. Select code in the editor and copy, or download the project.');}}
  return <section className={'code-studio'+(expanded?' studio-expanded':'')} aria-label="Veyra Code Studio">
-  <div className="studio-heading"><div><span className="eyebrow">INSPECT → GENERATE → EDIT → PREVIEW → EXPORT</span><h2>Code Studio <small>V0.4.0</small></h2></div><button onClick={()=>setExpanded(v=>!v)} aria-pressed={expanded}>{expanded?'Compact workspace':'Expand workspace'}</button></div>
+  <div className="studio-heading"><div><span className="eyebrow">INSPECT → GENERATE → EDIT → PREVIEW → EXPORT</span><h2>Code Studio <small>V0.4.1</small></h2></div><button onClick={()=>setExpanded(v=>!v)} aria-pressed={expanded}>{expanded?'Compact workspace':'Expand workspace'}</button></div>
   <div className="studio-toolbar">
    <label>Output<select aria-label="Code output format" value={format} disabled={working} onChange={e=>setFormat(e.target.value)}><option value="vanilla">HTML / CSS / JavaScript</option><option value="react">React project</option></select></label>
    <label>Scope<select aria-label="Code selection scope" value={scope} disabled={working} onChange={e=>setScope(e.target.value)}><option value="element">Selected element</option><option value="section">Selected section</option><option value="page">Visible page</option></select></label>
    <label>Generator<select aria-label="Code generator" value={mode} disabled={working} onChange={e=>{setMode(e.target.value);setConsent(false);}}><option value="local">Local · measured reconstruction</option><option value="auto" disabled={!config?.codeAIAvailable}>AI · configured model</option></select></label>
-   <button className="primary" onClick={generate} disabled={busy||working||!session||!frame||(scope!=='page'&&!inspection)||(mode==='auto'&&!consent)}>{working?'Generating…':'Generate Code'}</button>
+   <button className="primary" onClick={generate} disabled={busy||working||!session||!frame||(scope!=='page'&&!inspection)||((mode==='auto'||autoRepair)&&!consent)}>{working?'Generating…':'Generate Code'}</button>
    <button onClick={()=>render()} disabled={!project||working||rendering}>Preview</button><button onClick={copy} disabled={!project||working}>Copy file</button>
    <button onClick={()=>{try{saveDownload(exportProject(project),'veyra-'+project.format+'.zip');setStatus('Current project exported.');}catch(e){setError(e.message);}}} disabled={!project||working}>Download project</button>
    <button disabled={!project||working||!original} onClick={()=>{remember();setProject(original);setStatus('Original generated files restored. Previous edits are in Restore previous.');}}>Reset generated code</button>
    <button disabled={!history.length||working} onClick={restore}>Restore previous</button>
   </div>
-  {mode==='auto'&&<label className="studio-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>Send the selected, redacted website evidence to the configured external AI provider for this generation.</label>}
+  {mode==='auto'&&<label className="studio-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>Send the selected website evidence and embedded source images to the configured external AI provider for this generation.</label>}
+  <p className="provider-status">Code AI: {config?.providerStatus?.code||'checking'} · Repair AI: {config?.providerStatus?.repair||'checking'}. Configured does not mean a live request has succeeded.</p><label className="studio-consent"><input type="checkbox" checked={autoRepair} disabled={!config?.repairAIAvailable} onChange={e=>setAutoRepair(e.target.checked)}/>Allow one AI repair using current code, selected evidence and comparison measurements (uses one refinement allowance).</label>
+  {autoRepair&&mode==='local'&&<label className="studio-consent"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>Send selected evidence and code to the configured repair provider.</label>}
   <p className="fine-print">{config?`${config.plan} operator plan · ${config.generationLimit} generations/day · ${config.refinementLimit} refinements/day`:'Checking configuration…'} · Local editor renders are unmetered. Code stays in this open session; download before closing the tab.</p>
   {error&&<div role="alert" className="error">{error}</div>}<div role="status" aria-live="polite" className="notice">{status}</div>
   {!project?<div className="studio-empty"><h3>Turn your selection into working code.</h3><p>Open a website, select a component, choose an output, then generate. Local mode works without an API key.</p></div>:<>
@@ -69,7 +71,7 @@ export default function CodeStudio({session,frame,inspection,busy=false,onBusy=(
     </section>
    </div>
    <div className="studio-refine"><label>Refine current code<input aria-label="Refinement instruction" maxLength={1200} value={instruction} disabled={working} onChange={e=>setInstruction(e.target.value)} placeholder="Make this section responsive"/></label><label className="studio-consent"><input type="checkbox" checked={refineConsent} onChange={e=>setRefineConsent(e.target.checked)}/>Send current code and its selected evidence to the configured refinement provider.</label><button disabled={working||!config?.refineAIAvailable||instruction.trim().length<5||!refineConsent} onClick={refine}>Refine code with AI</button>{!config?.refineAIAvailable&&<p className="fine-print">AI refinement is unavailable until a provider is configured. Manual editing works.</p>}</div>
-   <details className="studio-diagnostics"><summary>Generation evidence and limitations</summary><p>Modified files: {result?.modifiedFiles?.join(', ')}</p>{result?.warnings?.map((w,i)=><p key={i}>{w}</p>)}{metrics&&<p>Preview checks: {JSON.stringify(fidelityDiagnostics(result?.diagnostics?.expected,metrics))}. Size tolerance: 2px or 5%. This compares DOM measurements at the current viewport; it is not a pixel similarity score.</p>}<pre>{JSON.stringify(result?.diagnostics||{},null,2)}</pre></details>
+   <details className="studio-diagnostics"><summary>Generation evidence and limitations</summary><p>Modified files: {result?.modifiedFiles?.join(', ')}</p>{result?.warnings?.map((w,i)=><p key={i}>{w}</p>)}{metrics&&<p>Preview checks: {JSON.stringify(fidelityDiagnostics(result?.diagnostics?.expected,metrics))}. Size tolerance: 2px or 5%. This compares DOM measurements at the current viewport; it is not a pixel similarity score.</p>}<pre>{JSON.stringify({comparison:result?.comparison,repair:result?.repair,evidence:result?.diagnostics},null,2)}</pre></details>
   </>}
  </section>;
 }

@@ -23,6 +23,6 @@ export default function App(){
       {visited&&<InspectorWorkspace active={route.page==='inspector'} replay={replay} preferencesEpoch={preferencesEpoch}/>}
       {route.page==='preferences'&&<DataPreferences onChange={()=>setPreferencesEpoch(n=>n+1)}/>}
       {!['','inspector','preferences'].includes(route.page)&&<InfoPage key={route.page} page={route.page}/>}
-    </main><footer className="site-footer"><div><a className="brand-home" href="#/"><Brand compact/></a><p>See the detail. Build the vision.</p></div><div className="footer-links"><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/privacy">Privacy · draft</a><a href="#/cookies">Cookies · draft</a><a href="#/terms">Terms · draft</a><a href="#/preferences">Data preferences</a><a href="#/brand">Logo concepts</a></div><div className="footer-note"><span>VEYRA AI · V0.4.0 · Code Studio</span><span>Branding, design and policies await owner approval.</span></div></footer>
+    </main><footer className="site-footer"><div><a className="brand-home" href="#/"><Brand compact/></a><p>See the detail. Build the vision.</p></div><div className="footer-links"><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/privacy">Privacy · draft</a><a href="#/cookies">Cookies · draft</a><a href="#/terms">Terms · draft</a><a href="#/preferences">Data preferences</a><a href="#/brand">Logo concepts</a></div><div className="footer-note"><span>VEYRA AI · V0.4.1 · Code Studio</span><span>Branding, design and policies await owner approval.</span></div></footer>
   </div>;
 }

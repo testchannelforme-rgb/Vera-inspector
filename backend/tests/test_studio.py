@@ -127,7 +127,7 @@ def test_api_end_to_end_references_preview_and_failure(client,fmt):
     assert client.post('/api/studio/preview',headers=HEADERS,json={'project':project}).status_code==200
     project['files']['script.js' if fmt=='vanilla' else 'App.jsx']='function ('
     assert client.post('/api/studio/preview',headers=HEADERS,json={'project':project}).status_code==422
-    assert client.get('/api/health').json()['version']=='0.4.0'
+    assert client.get('/api/health').json()['version']=='0.4.1'
     assert client.get('/api/studio/render/missing').status_code==404
     assert client.post('/api/studio/preview',json={'project':project}).status_code==403
     assert client.post('/api/studio/generate',headers=HEADERS,json={'sessionId':'s','frameId':'stale'}).status_code==409

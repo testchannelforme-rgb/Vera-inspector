@@ -1,0 +1,162 @@
+[
+  {
+    "fixture": "nav",
+    "format": "vanilla",
+    "baseline": {
+      "available": true,
+      "pixelMAE": 0.0,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.0,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    },
+    "updated": {
+      "available": true,
+      "pixelMAE": 0.0,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.0,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    }
+  },
+  {
+    "fixture": "hero",
+    "format": "vanilla",
+    "baseline": {
+      "available": true,
+      "pixelMAE": 186.831,
+      "geometryMAEpx": 0.002,
+      "missingNodes": 1,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 206.834,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    },
+    "updated": {
+      "available": true,
+      "pixelMAE": 0.0,
+      "geometryMAEpx": 0.002,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.002,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    }
+  },
+  {
+    "fixture": "grid",
+    "format": "vanilla",
+    "baseline": {
+      "available": true,
+      "pixelMAE": 118.92,
+      "geometryMAEpx": 0.007,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 118.926,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    },
+    "updated": {
+      "available": true,
+      "pixelMAE": 0.0,
+      "geometryMAEpx": 0.007,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.007,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    }
+  },
+  {
+    "fixture": "responsive",
+    "format": "vanilla",
+    "baseline": {
+      "available": true,
+      "pixelMAE": 202.682,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 202.682,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    },
+    "updated": {
+      "available": true,
+      "pixelMAE": 0.0,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.0,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    }
+  },
+  {
+    "fixture": "motion",
+    "format": "vanilla",
+    "baseline": {
+      "available": true,
+      "pixelMAE": 0.104,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.104,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    },
+    "updated": {
+      "available": true,
+      "pixelMAE": 0.104,
+      "geometryMAEpx": 0.0,
+      "missingNodes": 0,
+      "styleMismatches": 0,
+      "overflow": false,
+      "loss": 0.104,
+      "limitations": [
+        "Same captured viewport only; font rasterization and animation timing can differ.",
+        "Not an accuracy percentage; missing node IDs reduce comparison reliability."
+      ],
+      "runtimeErrors": []
+    }
+  }
+]

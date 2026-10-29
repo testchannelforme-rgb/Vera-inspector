@@ -38,7 +38,7 @@ if health['status']!='ready':
  request=urllib.request.Request(base+'/browser/retry',method='POST',headers={'X-Veyra-Client':'inspector-v0.1'})
  with urllib.request.urlopen(request,timeout=35) as response:health=json.load(response)
 if health['status']!='ready':raise SystemExit('Browser is unavailable. No permissive fallback was enabled.')
-if health.get('version')!='0.4.0':raise SystemExit('Wrong application version on port 8001. Check stale containers.')
+if health.get('version')!='0.4.1':raise SystemExit('Wrong application version on port 8001. Check stale containers.')
 print('VEYRA AI',health['version'],'commit',health.get('commit'),'browser readiness verified.')
 PYREADY
 printf 'Veyra is on private forwarded port 8001. Stop with: docker compose -f compose.inspection.yml stop\n'

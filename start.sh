@@ -15,5 +15,5 @@ if [[ ! -x .venv/bin/python || ! -d frontend/node_modules ]]; then bash scripts/
 # Always build checked-out sources. An old dist directory must not mask a new version.
 npm --prefix frontend run build
 export PYTHONPATH="$(pwd)/backend${PYTHONPATH:+:$PYTHONPATH}"
-printf '\nVEYRA AI V0.4.0 · private forwarded port %s · commit %s\n' "$port" "$(git rev-parse --short HEAD)"
+printf '\nVEYRA AI V0.4.1 · private forwarded port %s · commit %s\n' "$port" "$(git rev-parse --short HEAD)"
 exec .venv/bin/python -m uvicorn app.main:app --host "${VEYRA_BIND_HOST:-127.0.0.1}" --port "$port" --workers 1 --no-proxy-headers --no-access-log --timeout-keep-alive 5 --limit-concurrency 24

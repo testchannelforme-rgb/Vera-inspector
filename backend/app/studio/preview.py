@@ -46,6 +46,14 @@ class SafeMarkup(HTMLParser):
             value=value or ''
             if key in {'id','class','role','type','disabled','placeholder','tabindex','open','colspan','rowspan','alt','width','height'} or key.startswith(('aria-','data-')):
                 safe.append((key,value))
+            elif key=='style':
+                from .local import declarations
+                styles={}
+                for part in value.split(';'):
+                    k,sep,v=part.partition(':')
+                    if sep:styles[k.strip()]=v.strip()
+                cleaned=declarations(styles)
+                if cleaned:safe.append(('style',cleaned))
             elif key=='href' and value.startswith('#'):safe.append((key,value))
             elif key=='src' and tag=='img' and value.startswith(('data:image/png;base64,','data:image/jpeg;base64,','data:image/webp;base64,')):safe.append((key,value))
         self.parts.append('<'+tag+''.join(' '+k+'="'+html.escape(v,quote=True)+'"' for k,v in safe)+'>')

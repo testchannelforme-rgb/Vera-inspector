@@ -1,0 +1,35 @@
+:root {
+  --brand-charcoal: #2E3138;
+  --brand-sage: #A8B89A;
+  --canvas: #24272D;
+  --surface: var(--brand-charcoal);
+  --surface-raised: #383D44;
+  --border: #626B65;
+  --text: #F2F4EE;
+  --muted-text: #BEC5B7;
+  --danger: #F4A59B;
+  --danger-surface: #492E32;
+  --accent: var(--brand-sage);
+  --violet: var(--brand-sage);
+  --blue: var(--brand-sage);
+  --green: var(--brand-sage);
+  --muted: var(--muted-text);
+  --line: var(--border);
+  --panel: var(--surface);
+  --panel-2: var(--surface-raised);
+  color: var(--text);
+  background: var(--brand-charcoal);
+}
+.primary,.primary:hover:not(:disabled),.primary.button-link:hover {
+  background: var(--brand-sage);color: var(--brand-charcoal);
+  border-color: var(--brand-sage);box-shadow:none;
+}
+.site-header,.site-footer,.code-studio {background:var(--brand-charcoal)}
+input:focus-visible,button:focus-visible,a:focus-visible,select:focus-visible {outline-color:var(--brand-sage)}
+.studio-code {background:var(--canvas);color:var(--text)}
+.studio-code .panel-title,.cm-gutters {background:var(--surface-raised)!important;color:var(--text)!important}
+.cm-content {caret-color:var(--brand-sage)}
+.studio-files button[aria-pressed=true] {background:var(--brand-sage);color:var(--brand-charcoal)}
+.provider-status {font-size:12px;color:var(--muted-text);margin:12px 0}
+
+:root { accent-color: var(--brand-sage); }

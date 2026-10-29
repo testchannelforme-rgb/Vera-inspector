@@ -1,6 +1,6 @@
-export async function api(path,body,method='POST') {
+export async function api(path,body,method='POST',timeoutMs=45000) {
   const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),45000);
+  const timeout=setTimeout(()=>controller.abort(),timeoutMs);
   try {
     const response=await fetch('/api'+path,{method,signal:controller.signal,headers:{'Content-Type':'application/json','X-Veyra-Client':'inspector-v0.1'},...(body===undefined?{}:{body:JSON.stringify(body)})});
     const data=await response.json();

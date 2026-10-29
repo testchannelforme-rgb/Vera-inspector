@@ -1,4 +1,10 @@
-# VEYRA AI V0.4.0 — Code Studio
+# VEYRA AI V0.4.1 — generation fidelity and Charcoal/Sage restoration
+
+This increment preserves the V0.4 editor, live preview, inspection, prompts and exports. Read **V041_UPDATE.md** for installation, optional AI configuration, comparison/repair behavior, limits and the Git-bundle route. Read **TEST_REPORT_V041.md** for the measured before/after results and unverified deployment checks.
+
+The app uses approved Charcoal #2E3138 and Sage #A8B89A tokens; source-site reconstruction never uses those tokens unless present in measured evidence. V0.4.1 retains up to 55 collected nodes in both plans, builds a versioned reconstruction specification, preserves positional offsets and inherited canvas color, embeds bounded origin-clean raster assets, and retains safe inline styles in vanilla preview markup. Code tasks have independent bounded output budgets. A protected offline renderer compares local reference/preview screenshots and DOM metrics; an optional single repair must reduce measured discrepancy before acceptance.
+
+# Preserved V0.4 architecture notes (historical defaults below)
 
 An incremental upgrade from verified V0.3.3 commit `08b804c71eadd9e324cf04581572e19d609f0f89`. Branch: `feature/v0.4-code-studio`. The existing React/FastAPI/Playwright inspection, URL policy, browser isolation and prompt engine remain.
 

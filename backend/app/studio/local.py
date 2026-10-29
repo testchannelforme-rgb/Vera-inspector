@@ -6,7 +6,7 @@ from ..prompts.css_safety import sanitize_css
 from .schemas import Project
 
 TAGS=set('div section article header footer main nav aside h1 h2 h3 h4 h5 h6 p span strong em small button a ul ol li label figure figcaption blockquote pre code hr br details summary'.split())
-VOID={'hr','br'}
+VOID={'hr','br','img'}
 
 def declarations(styles):
     result=[]
@@ -31,7 +31,13 @@ def reconstruct(evidence, output):
         cls='v'+str(n['id']);tag=n['tag'] if n['tag'] in TAGS else 'div'
         styles=dict(n.get('styles',{}));visual=n.get('visual',{})
         # Keep measured layout but allow the outer box to fit the preview viewport.
-        if n is nodes[0]:styles.update({'max-width':'100%','position':'relative','margin-top':'0px','margin-left':'0px'})
+        if n is nodes[0]:
+            styles.update({'max-width':'100%','position':'relative','margin-top':'0px','margin-left':'0px','top':'auto','left':'auto','right':'auto','bottom':'auto'})
+        if n is nodes[0]:
+            for owner in evidence.get('visualContext',{}).get('owners',[]):
+                bg=owner.get('styles',{}).get('background-color')
+                if owner.get('relation')=='ancestor' and bg and bg not in ('transparent','rgba(0, 0, 0, 0)'):
+                    rules.append('body { background-color: '+declarations({'background-color':bg}).split(': ',1)[-1]+'; }');break
         rules.append('.'+cls+' { '+declarations(styles)+'; }')
         for p in visual.get('pseudoElements',[]):
             if p.get('contentKind') in ('empty','text'):
@@ -40,8 +46,10 @@ def reconstruct(evidence, output):
         text=html.escape(n.get('text',''))
         attrs=f' class="{cls}" data-veyra-node="{n["id"]}"'
         if n.get('accessibility',{}).get('label'):attrs+=' aria-label="'+html.escape(n['accessibility']['label'],quote=True)+'"'
-        if n['tag'] in ('img','svg','canvas','video'):
-            attrs=f' class="{cls} asset-placeholder" role="img" aria-label="Asset unavailable"'
+        if n['tag']=='img' and n.get('embeddedAsset','').startswith('data:image/png;base64,'):
+            tag='img';attrs+=' src="'+html.escape(n['embeddedAsset'],quote=True)+'" alt="'+html.escape((n.get('image') or {}).get('alt',''),quote=True)+'"'
+        elif n['tag'] in ('img','svg','canvas','video'):
+            attrs=f' data-veyra-node="{n["id"]}" class="{cls} asset-placeholder" role="img" aria-label="Asset unavailable"'
             text=html.escape((n.get('image') or {}).get('alt','') or 'Asset unavailable')
         if tag=='button':attrs+=' type="button"'
         if tag=='a':attrs+=' href="#"'
@@ -54,7 +62,7 @@ def reconstruct(evidence, output):
         changes={k:v['observed'] for k,v in hover.get('changes',{}).items() if 'observed' in v}
         rules.append('.v'+str(selected['id'])+':is(:hover,:focus-visible) { '+declarations(changes)+'; }')
     if any(n.get('styles',{}).get('animation-name','none')!='none' for n in nodes):warnings.append('Animation names were observed but original keyframe rules were not recovered; those animations are omitted.')
-    rules.append('@media (max-width: 640px) { .veyra-root { width: 100%; } .veyra-root img { max-width: 100%; } }')
+    rules.append('.veyra-root img { max-width: 100%; }')
     css='\n\n'.join(rules)+'\n'
     js="// Original navigation and backend actions are unknown.\ndocument.querySelectorAll('a[href=\"#\"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));\n"
     if output=='vanilla':
@@ -62,7 +70,7 @@ def reconstruct(evidence, output):
     else:
         # HTML is escaped static content produced by this module, not source-page HTML.
         jsx=markup.replace('class=','className=')
-        jsx=re.sub(r'<(hr|br)([^>]*?)>',r'<\1\2 />',jsx)
+        jsx=re.sub(r'<(hr|br|img)([^>]*?)>',r'<\1\2 />',jsx)
         # Text braces are JSX delimiters; convert all literal text to expressions via a parser.
         from html.parser import HTMLParser
         class JSX(HTMLParser):
