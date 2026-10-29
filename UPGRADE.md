@@ -1,50 +1,65 @@
-# Install V0.3.1 safely from the attached V0.3 baseline
+# Safely install V0.3.2 in your existing Codespace
 
-This update was built from `Veyra_V0.3_Clean_For_Sol.zip`, not a GitHub checkout. It cannot include uncommitted Codespaces edits that were absent from your attachment. No remote connectivity is required.
+This is a changed-files update, not a replacement project. Use the actual current V0.3.1 checkout, including your later Codespaces UI-test/config fixes. The installer requires Python 3.11+ and Git. Installation itself needs no network.
 
-1. Open your existing Codespace on the tablet. In the repository terminal run `git status --short`. Commit or separately back up current work before proceeding. The installer refuses staged/unstaged tracked changes and does not stash them automatically. Protect any untracked personal files too; existing paths are never silently replaced.
-2. Use Explorer's upload action to upload `Veyra_AI_V0.3.1_Update.zip` beside `backend`, `frontend` and `start.sh`.
-3. Create or select the required branch:
+## 1. Protect your work and create the branch
+
+Open your existing Codespace on your tablet. Open Terminal → New Terminal at the repository root:
 
 ```bash
-git switch -c feature/v0.3.1-prompt-accuracy
+git status --short
+git branch --show-current
+git log -1 --oneline
 ```
 
-If it already exists, use `git switch feature/v0.3.1-prompt-accuracy` instead. The installer refuses to run on main or any other branch.
+If there are uncommitted changes, save/commit or independently back them up **before proceeding**. Review files individually before staging; never stage `.env`, credentials, runtime data or caches. The installer refuses tracked changes, including staged changes. It does not stash or discard anything.
 
-4. Extract, check, then apply only if the check succeeds:
+From your verified, latest installed V0.3.1 checkout:
 
 ```bash
-unzip -q Veyra_AI_V0.3.1_Update.zip
-python3 veyra-v031-update/apply_update.py --check
-python3 veyra-v031-update/apply_update.py --apply
+git branch backup/pre-v032-visual-fidelity
+git switch -c feature/v0.3.2-visual-fidelity
 ```
 
-The package's `manifest.json` lists every changed/new path, original SHA256 (or null for a new file), updated SHA256, mode and purpose. `updated/` preserves repository-relative paths; `baseline/` contains only replaced source for comparison. These are not extra historical release archives. No complete application replacement is required.
+If the backup name already exists, choose a new backup name; do not move/delete the old branch. If the target branch already exists, use `git switch feature/v0.3.2-visual-fidelity` only after verifying its source is the intended baseline. Stable backup branches remain untouched. No checkout of the supplied attachment is needed in your existing repository.
 
-The installer checks all paths and hashes before writing. If a current file differs from the attachment, it reports that path and makes **no changes**. Compare `baseline/`, `updated/` and your current source, reconcile manually and test; do not force-copy or reset to bypass the refusal. Even committed Codespaces changes absent from the attachment require review.
+## 2. Upload, extract and check
 
-Application uses same-directory atomic writes, original-file backups and rollback on a write failure. Successful backups are under `.v031-backups/update-*`, with a hash-checked journal identifying replaced and newly created files. Keep them until acceptance passes. Only the packaged files change; unrelated work is left alone.
-
-5. Rebuild/start the existing app stack:
+In Codespaces Explorer, upload `Veyra_AI_V0.3.2_Visual_Fidelity_Update.zip` to the repository root. If a `veyra-v032-update` directory already exists, move it outside the repository or rename it before extraction; do not overwrite a prior package or backup.
 
 ```bash
+unzip -q Veyra_AI_V0.3.2_Visual_Fidelity_Update.zip
+python3 veyra-v032-update/apply_update.py --check
+```
+
+The check verifies repository/branch, every overwritten file against an exact expected baseline or already-installed payload, new-file collisions, compatibility anchors, payload/baseline SHA-256 checksums and safe paths/symlinks. No source file is written during `--check`.
+
+**If it stops:** do not use `cp`, overwrite prompts, edit manifest hashes or reset the repository to force installation. Your latest installed source differs. Preserve it, compare the reported paths with the package's `baseline/` and `updated/` copies and `changes.patch`, then request/review a reconciled update against those current files. Unrelated committed changes are preserved. The exact checkpoint `29ef127` and later uncommitted Codespaces changes could not be inspected here, so automatic compatibility cannot be promised.
+
+## 3. Apply and start
+
+Only after the check passes:
+
+```bash
+python3 veyra-v032-update/apply_update.py --apply
 bash start.sh --isolated
 ```
 
-The app image builds the changed frontend/backend. No dependency version, browser container, firewall, seccomp or devcontainer change is required. For a fresh environment use **Codespaces: Rebuild Container** first. Open port 8000 with visibility **Private**.
+Backups are created first in `.v032-backups/update-*` with a hash journal. Each preimage is rechecked before writing; writes use atomic replacement. A mid-install failure restores already-written files. Nothing merges, commits, switches branches, stashes, pushes or deploys automatically.
 
-6. Follow [manual acceptance](docs/V031_ACCEPTANCE.md), review `git diff` and commit only the intended update files. Do not commit credentials, `.env`, runtime capabilities, backups or the release ZIP. The supplied ignore rules cover the update folder/ZIP/backups.
+Open forwarded port **8000** and keep visibility **Private**. The existing Docker startup rebuilds the app/frontend, checks network isolation and browser readiness, and stops public browsing if verification fails. Preserve your existing Docker/devcontainer/CSP fixes. No API key is needed.
 
-Rollback before subsequent edits:
+On a clean environment only, run `bash scripts/setup.sh` in the maintained devcontainer. Do not run browser tests with sandbox disabled or change CSP to pass tests. A restart should use the same `bash start.sh --isolated` command. Rebuild Container only if your existing environment requires it; this update does not alter system dependency setup.
+
+Run the commands in TEST_REPORT.md and the acceptance checklist before claiming real-site accuracy. Review and commit only the intended changed source/docs/tests once satisfied.
+
+## Rollback
+
+Before making further source edits:
 
 ```bash
-python3 veyra-v031-update/apply_update.py --rollback latest
+python3 veyra-v032-update/apply_update.py --rollback latest
 bash start.sh --isolated
 ```
 
-Rollback checks every current installed file against its journal hash before restoring any source. If you have edited, deleted or replaced an installed file since applying, rollback refuses the whole operation; preserve/reconcile that work manually first. You may replace `latest` with the exact printed path `.v031-backups/update-...` to choose a particular backup. Newly added update files are removed only after those checks; unrelated files stay in place. Keep using the feature branch for rollback.
-
-A second `--check` while the applied files are still uncommitted will intentionally report a dirty working tree. After reviewing/committing the update, reapplying a matching package is a zero-file operation.
-
-This package was not run in Codespaces. Test logs here cannot establish that your live website/browser stack works after installation. No script pushes to GitHub, force-pushes, deploys publicly or changes main.
+Rollback restores pre-installation bytes/modes and removes files introduced by this update. It preserves unrelated files and refuses if installed files have since changed or backup hashes disagree. If refused, preserve those later edits and review the journal/backups manually; never force overwrite. If you committed the update, rollback intentionally leaves source changes in the worktree for review; it does not rewrite Git history. Keep the package and `.v032-backups` until acceptance is complete.

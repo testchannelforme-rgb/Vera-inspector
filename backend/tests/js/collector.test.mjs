@@ -4,9 +4,10 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {el,environment} from './synthetic-dom.mjs';
 const boundary=readFileSync(new URL('../../app/prompts/boundary.js',import.meta.url),'utf8');
-const collector=readFileSync(new URL('../../app/prompts/collect.js',import.meta.url),'utf8').replace('__VEYRA_BOUNDARY_FUNCTION__','('+boundary+')');
+const visual=readFileSync(new URL('../../app/prompts/visual.js',import.meta.url),'utf8');
+const collector=readFileSync(new URL('../../app/prompts/collect.js',import.meta.url),'utf8').replace('__VEYRA_BOUNDARY_FUNCTION__','('+boundary+')').replace('__VEYRA_VISUAL_FUNCTION__',visual);
 const choose=(n)=>vm.runInNewContext('('+boundary+')',environment())(n);
-const collect=(n,scope='section',clock)=>vm.runInNewContext('('+collector+')',environment(clock))(n,scope);
+const collect=(n,scope='section',clock)=>vm.runInNewContext('('+collector+')',environment(clock||{now:()=>0}))(n,scope);
 const main=()=>el('main',{box:[0,0,1280,2400]});
 
 test('hero heading resolves to local section, not main',()=>{
@@ -122,7 +123,9 @@ test('computed URL-free gradients are retained; signed background asset URLs rem
 test('CSS materialization time cutoff preserves late high-priority CTA before generic nodes',()=>{
   const body=el('body');for(let i=0;i<100;i++)body.add(el('div',{text:'generic'}));
   body.add(el('button',{text:'Late important CTA'}));
-  let calls=0;const clock={now:()=>++calls<=103?0:calls===104?110:130};
+  let materialized=0;
+  for(const n of [body,...body.children])Object.defineProperty(n.styles,'font-family',{get(){materialized++;return 'Arial';}});
+  const clock={now:()=>materialized>=2?130:0};
   const result=collect(body,'page',clock);
   assert.equal(result.truncated,true);assert.ok(result.nodes.some(n=>n.text==='Late important CTA'));
   assert.equal(result.nodes.length,2);assert.equal(result.nodes[0].id,0);

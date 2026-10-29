@@ -1,54 +1,41 @@
-# Veyra AI V0.3.1 — prompt accuracy upgrade
+# Veyra AI V0.3.2 — visual fidelity update
 
-This is a focused update to the **attached clean V0.3 source**. It improves section boundaries, prioritization, CSS organization and reconstruction guidance. It preserves the inspector, hover, JSON export, existing UI, three scopes, three targets/detail levels, no-key generation and optional AI enhancement. No new dependency version or browser/network setting is introduced.
+Incremental upgrade to the supplied V0.3 base plus V0.3.1 update. It improves visual evidence and deterministic recreation prompts without changing the UI layout, eight-section prompt contract, raw inspection JSON schema, browser isolation or network configuration. No new dependency or mandatory AI service.
 
-**Verified:** 214 Python tests and 34 Node tests passed, including exact style reconstruction and execution of the real collector against a synthetic DOM. The Vite production build passed. **Blocked:** 16 real-browser tests and the strict browser-startup probe because Chromium's executable is absent here. Docker/Codespaces, real-site V0.3.1 accuracy and live AI were not tested. Synthetic geometry is test data, not captured website evidence. See [TEST_REPORT.md](TEST_REPORT.md).
+**Verification on 26 October 2026:** 299 Python tests passed, 20 browser-dependent tests skipped; 50 JavaScript/frontend tests passed; Vite production build passed. The HTTP application/frontend smoke test passed. **Browser acceptance remains blocked:** Chromium download failed with an incomplete archive, the strict sandbox-enabled startup probe failed, and Docker is unavailable here. No public website, real screenshot comparison, Codespace or live AI provider was validated for this release. This is an installable, regression-tested update awaiting browser acceptance on your working host.
 
-## Install into your existing Codespace
+## Install and start
 
-Use [UPGRADE.md](UPGRADE.md). The ZIP contains changed files only, baseline copies for comparison, a complete manifest and a conservative installer. It refuses other branches, uncommitted tracked changes, mismatching baseline files, unsafe paths and corrupt payloads. It never auto-stashes, resets or merges your work.
+Read [UPGRADE.md](UPGRADE.md) first. The package checks exact baseline hashes, protects newer source, creates backups and supports rollback. It never switches branches, resets or stashes your work. The reported Codespaces checkpoint `29ef127` was not accessible; this is **not** an exact snapshot of that checkpoint.
 
-After saving your current work, upload `Veyra_AI_V0.3.1_Update.zip` to the repository root using the Explorer upload action. In the Codespaces terminal:
+After saving/committing your existing work, create the target branch from your actual installed V0.3.1 branch, upload/extract the ZIP, then run:
 
 ```bash
-git status --short
-git switch -c feature/v0.3.1-prompt-accuracy
-unzip -q Veyra_AI_V0.3.1_Update.zip
-python3 veyra-v031-update/apply_update.py --check
-python3 veyra-v031-update/apply_update.py --apply
+python3 veyra-v032-update/apply_update.py --check
+python3 veyra-v032-update/apply_update.py --apply
 bash start.sh --isolated
 ```
 
-If that branch already exists, use `git switch feature/v0.3.1-prompt-accuracy` instead of `git switch -c`. Stop if `git status` shows unsaved tracked changes; commit or back them up first. Apply only after the check passes. Modified committed source that differs from the attachment also requires manual reconciliation; no file is overwritten to force compatibility.
+Keep forwarded port **8000 Private**. If the check reports a conflict, stop and reconcile against the latest source. Do not replace files manually to defeat the guard. The unchanged isolated startup rebuilds the app/frontend and verifies the browser network rules. No devcontainer or Compose change is required by this upgrade.
 
-Open forwarded port **8000**, visibility **Private**. The existing isolated stack rebuilds the app/frontend. A working V0.3 Codespace needs no devcontainer change. On a fresh environment, use **Codespaces: Rebuild Container** and let the existing setup finish. Codespaces quotas still apply; no paid resource is purchased by the code.
+## What changes
 
-Rollback, before making further source edits:
+- Single/multiple linear, radial, conic and repeating gradients retain sanitized parameters and layer order; URL assets remain explicit placeholders.
+- A transparent selected element keeps its own CSS. Bounded ancestor/nearby paint context records the actual background owner instead of assigning that background to the child.
+- Generated `::before`/`::after` decoration retains owner, computed dimensions/offsets and paint. No pseudo bounding rectangle is invented.
+- Text clipping/fill/stroke/shadow, masks, blend modes, opacity, transforms, clipping, stacking indicators and image availability receive useful evidence.
+- Geometrically overlapping matching text with DOM/layering indicators is described as a **possible** composition/state/accessibility alternative. Separate DOM nodes and exact CSS remain available; equal text alone never merges content.
+- A Visual Composition Summary leads the existing eight-section prompt. Exact shared styles and node-specific mappings remain lossless for included sanitized properties. Unknown paint order, pixel colors, states and responsive layouts stay explicit.
 
-```bash
-python3 veyra-v031-update/apply_update.py --rollback latest
-bash start.sh --isolated
-```
+See [technical design and limits](docs/V032_ACCURACY.md), [manual acceptance](docs/V032_ACCEPTANCE.md), [changed files](docs/MODIFIED_FILES.md), [changelog](docs/V032_CHANGELOG.md) and [test report](TEST_REPORT.md). Existing V0.3.1 documentation is retained as historical design context.
 
-Rollback verifies installed-file hashes before restoring originals/removing newly added files. It refuses to overwrite later edits. Backups are under `.v031-backups/update-*`; unrelated files are preserved.
+## Use it
 
-## What improves
-
-- Section scope scores local semantic regions, painted component boundaries, measured layout/spacing and visible child groups. It rejects page landmarks, disproportionate tall ancestors and containers grouping unrelated landmarks. It reports reasons/candidates and a predictable local fallback. Explicit main/body/html selections in section mode ask you to select a local child. Element/page scopes remain available.
-- Bounded discovery reaches later sibling headings, controls and images. The selected ancestry is pinned; original IDs, parent paths and DOM sibling indices are retained. The renderer prioritizes important nodes with complete ancestor paths instead of taking a prefix.
-- Every captured **sanitized** CSS property for an included node is retained, including Concise output. Equal values are factored into exact shared groups plus node-specific mappings. This is not proof of inheritance or original CSS classes. Length-bounded/privacy-modified values are flagged.
-- Prompts clearly organize hierarchy, content/assets, geometry/parent deltas, layout, typography, appearance, interactions, responsiveness, accessibility and limitations. Viewport intersection is geometric evidence, not a proof of pixel visibility or clipping.
-- URL-free computed gradients, additional flex/spacing/overflow/font properties and DOM accessibility attributes improve evidence. Signed asset URLs, form values, editable text, HTML, cookies and storage remain excluded. Private composed/shadow ancestors are checked conservatively.
-
-## Use the feature
-
-1. Open a public site and tap a heading, card title, navigation item or button.
-2. Choose **Selected section** and **Local**, then Generate Prompt. Review the reported boundary tag and reasons; compare it visually with the intended component.
-3. Check original node IDs/parent hierarchy and exact shared style references. Merge referenced groups plus node-specific values to recover included CSS.
-4. Try all targets and detail levels. Detail changes coverage rather than dropping measured properties. An unusually deep selected path can exceed the nominal Concise node count to preserve context.
-5. Existing edit/copy/regenerate, hover capture and JSON export work as before. Wait for the existing three-generation/session/minute limit when necessary.
-
-Only the current visible page sample is inspected; no scroll crawl, hidden-state activation, breakpoint discovery or source-code generation is added. Recommendations and AI interpretation remain labelled separately from measurements. Section segmentation is heuristic, not perfect. Follow [the manual acceptance checklist](docs/V031_ACCEPTANCE.md) on your working host before claiming real-site accuracy.
+1. Open a permitted public website and select a heading, card or control as before.
+2. In the existing prompt panel choose Element/Section/Page, target and detail. Use **Local** to avoid provider calls, then Generate Prompt.
+3. Review Visual Composition Summary, original node hierarchy, exact CSS references and attributed context/pseudos. Ancestor paint is context, not additional selected content.
+4. Compare with the preview; verify proposed text-layer relationships rather than treating them as proven pixel visibility. Edit, copy and regenerate using the existing controls.
+5. Capture Hover and regenerate to include actual measured hover observations. Transition declarations alone do not establish an observed effect.
 
 ## Optional AI adapter
 
@@ -88,20 +75,11 @@ bash scripts/setup.sh
 .venv/bin/python -m pytest -q -rs
 npm --prefix frontend test
 npm --prefix frontend run build
-bash scripts/test.sh --public
+PYTHONPATH=backend .venv/bin/python scripts/check_browser.py
 ```
 
-The last command includes the strict sandboxed Chromium probe. Unit/synthetic tests do not satisfy browser acceptance when that probe fails. The new browser cases are in `backend/tests/test_prompt_browser.py` and use `backend/tests/fixtures/accuracy.html` under the existing test-only local-site exception; production URL protections are unchanged.
+For combined checks including the public example.com test: `bash scripts/test.sh --public`. A green unit suite with skipped browser cases is not browser acceptance. New protected-browser cases live in `backend/tests/test_visual_browser.py` and use a generic local fixture under the existing test-only exception; production URL policy is unchanged.
 
-After starting the real isolated stack:
+On the running isolated stack, execute `scripts/test_public.py` and `scripts/test_prompt_public.py` with `.venv/bin/python`, then follow the real-site acceptance checklist. No live AI is needed. Stop using `docker compose -f compose.inspection.yml stop`.
 
-```bash
-.venv/bin/python scripts/test_public.py
-.venv/bin/python scripts/test_prompt_public.py
-```
-
-Both scripts predate this update. The prompt probe defaults to local mode. Its `--ai` flag deliberately sends public evidence to your configured provider and can consume quota; use it only under your chosen budget. No live AI was called here.
-
-Stop with `docker compose -f compose.inspection.yml stop`. No deployment, remote push, PR or changes to main are made by this package.
-
-See [change list](docs/MODIFIED_FILES.md), [prompt contract](docs/PROMPTS.md), [accuracy design](docs/V031_ACCURACY.md), [security](SECURITY.md), and [test report](TEST_REPORT.md). Existing V0.2 runtime notes are historical context only.
+No remote push, PR, production change or public deployment was performed.

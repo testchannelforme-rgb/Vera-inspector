@@ -12,6 +12,9 @@ def importance(node):
     score+=20 if styles.get('display') in ('flex','inline-flex','grid','inline-grid') else 0
     score+=12 if styles.get('box-shadow','none') not in ('none','') else 0
     score+=8 if styles.get('background-image','none') not in ('none','') else 0
+    score+=35 if node.get('visual',{}).get('pseudoElements') else 0
+    score+=25 if styles.get('position') in ('absolute','fixed') else 0
+    score+=25 if styles.get('background-clip')=='text' or styles.get('-webkit-text-fill-color') in ('transparent','rgba(0, 0, 0, 0)') else 0
     score+=10 if behavior.get('expanded') is not None or behavior.get('nativeDisclosure') else 0
     return score
 

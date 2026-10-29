@@ -24,7 +24,7 @@ export default function PromptPanel({session,frame,inspection,busy,aiAvailable,o
     });
   }
   return <section className="prompt-panel" aria-label="AI recreation prompt">
-    <div className="panel-title">Generate AI Prompt <span className="badge">V0.3.1 · PROMPTS ONLY</span></div>
+    <div className="panel-title">Generate AI Prompt <span className="badge">V0.3.2 · PROMPTS ONLY</span></div>
     <div className="prompt-content">
       <p className="fine-print">Target: {scope==='page'?'Visible page at the current scroll position':inspection?`Selected <${inspection.element.tagName}>${scope==='section'?' and scored local component boundary':''}`:'Select an element in the preview'}. Existing selection and JSON export stay available above.</p>
       <div className="prompt-controls">

@@ -7,9 +7,11 @@ import re
 from urllib.parse import urlsplit
 from ..browser_manager import SessionError
 from .selection import selection_plan
+from .css_safety import sanitize_css
+from .visual_evidence import sanitize_context,sanitize_visual
 
 BOUNDARY_JS = Path(__file__).with_name('boundary.js').read_text()
-COLLECT_JS = Path(__file__).with_name('collect.js').read_text().replace('__VEYRA_BOUNDARY_FUNCTION__', '('+BOUNDARY_JS+')')
+COLLECT_JS = Path(__file__).with_name('collect.js').read_text().replace('__VEYRA_BOUNDARY_FUNCTION__', '('+BOUNDARY_JS+')').replace('__VEYRA_VISUAL_FUNCTION__', Path(__file__).with_name('visual.js').read_text())
 MAX_EVIDENCE_BYTES = 48000
 # Best effort redaction complements collection exclusions; it is not PII classification.
 REDACTIONS = [
@@ -25,6 +27,7 @@ REDACTIONS = [
 def clean_text(value, limit=240):
     text = re.sub(r'[\x00-\x08\x0b-\x1f\x7f]', '', str(value))[:2000]
     for pattern, replacement in REDACTIONS:
+        if '@' in pattern and '@' not in text:continue
         text = re.sub(pattern, replacement, text)
     # Newlines in page copy must never become prompt headings/instructions.
     return ' '.join(text.split())[:limit]
@@ -45,9 +48,11 @@ def sanitize(raw, url, hover=None):
             for c in decision.get('candidates',[])[:11]]
     if raw.get('collection'):
         evidence['collection']={k:v for k,v in raw['collection'].items()
-            if k in ('visited','candidates','returned','elapsedMs','method','selectedReturned')}
+            if k in ('visited','candidates','returned','elapsedMs','method','selectedReturned','rawCharacterLimit')}
     cleaned=[]
+    visual_budget={'remaining':8}
     for item in raw.get('nodes', [])[:55]:
+        if not isinstance(item,dict) or not all(k in item for k in ('id','parent','tag','depth','visible','box','behavior','image')):continue
         node = {k: item[k] for k in ('id','parent','tag','depth','visible','box','behavior','image')}
         node['tag'] = clean_text(node['tag'], 40)
         node['text'] = clean_text(item.get('text', ''))
@@ -58,25 +63,27 @@ def sanitize(raw, url, hover=None):
         if 'viewportIntersection' in item:node['viewportIntersection']=item['viewportIntersection']
         if item.get('accessibility'):
             node['accessibility']={'label':clean_text(item['accessibility'].get('label',''),160),
-                'disabled':item['accessibility'].get('disabled',False) is True,'method':'DOM attributes only; accessible name not verified'}
+                'hiddenFromAT':item['accessibility'].get('hiddenFromAT',False) is True,'disabled':item['accessibility'].get('disabled',False) is True,'method':'DOM attributes only; accessible name not verified'}
         if node['image']:
-            node['image'] = {**node['image'], 'alt':clean_text(node['image'].get('alt',''),160)}
-        node['styles']={};changed=[]
-        for k,v in list(item.get('styles',{}).items())[:100]:
-            if not isinstance(v,str):continue
-            key=clean_text(k,80)
-            if 'url(' in v.lower():changed.append(key);continue
-            # Preserve internal CSS whitespace; apply credential redaction, then bound it.
-            value=re.sub(r'[\x00-\x08\x0b-\x1f\x7f]','',v)[:2000]
-            for pattern,replacement in REDACTIONS:value=re.sub(pattern,replacement,value)
-            value=value[:180]
-            node['styles'][key]=value
-            if value!=v:changed.append(key)
-        node['styleTruncatedProperties']=[clean_text(k,80) for k in item.get('styleTruncatedProperties',[])[:100]]
-        node['sanitizedProperties']=changed
+            image=node['image'] if isinstance(node['image'],dict) else {}
+            number=lambda v:v if isinstance(v,(int,float)) and not isinstance(v,bool) and 0<=v<=1e9 else None
+            node['image']={'present':True,'alt':clean_text(image.get('alt',''),160),'naturalWidth':number(image.get('naturalWidth')),'naturalHeight':number(image.get('naturalHeight'))}
+            complete=image.get('complete')
+            node['image']['assetStatus']='loaded' if complete is True and (node['image']['naturalWidth'] or 0)>0 else 'unavailable' if complete is True else 'pending' if complete is False else 'unknown'
+        node['styles']={};changed=[clean_text(k,80) for k in item.get('sanitizedProperties',[])[:100] if isinstance(k,str)] if isinstance(item.get('sanitizedProperties'),list) else [];limited=[clean_text(k,80) for k in item.get('styleTruncatedProperties',[])[:100] if isinstance(k,str)] if isinstance(item.get('styleTruncatedProperties'),list) else []
+        fields=item.get('styles',{})
+        for k,v in list(fields.items())[:120] if isinstance(fields,dict) else []:
+            key=clean_text(k,80);value,modified,cut=sanitize_css(key,v,REDACTIONS)
+            if value is not None:node['styles'][key]=value
+            if modified:changed.append(key)
+            if cut:limited.append(key)
+        node['styleTruncatedProperties']=[clean_text(k,80) for k in sorted(set(limited))[:100]]
+        node['sanitizedProperties']=[clean_text(k,80) for k in sorted(set(changed))[:100]]
+        if item.get('visual'):node['visual']=sanitize_visual(item['visual'],clean_text,REDACTIONS,visual_budget)
         cleaned.append(node)
     # Budget admission is importance-based and accepts whole ancestor chains.
     # Six KB remain reserved for a bounded existing hover observation.
+    if raw.get('visualContext'):evidence['visualContext']=sanitize_context(raw['visualContext'],clean_text,REDACTIONS,visual_budget)
     evidence['nodes']=[]
     base_bytes=len(json.dumps(evidence,ensure_ascii=True).encode())
     cost=lambda n:len(json.dumps(n,ensure_ascii=True).encode())+2

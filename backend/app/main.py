@@ -40,7 +40,7 @@ def create_app(settings=None, manager=None, prompt_service=None):
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.3.1', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.3.2', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -106,7 +106,7 @@ def create_app(settings=None, manager=None, prompt_service=None):
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.3.1','prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.3.2','prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
                 'schemaVersion':'0.1'}
 
     @app.post('/api/browser/retry')

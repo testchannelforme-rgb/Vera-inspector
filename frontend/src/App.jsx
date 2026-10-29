@@ -45,7 +45,7 @@ export default function App() {
     a.href=href;a.download='veyra-inspection.json';a.click();setTimeout(()=>URL.revokeObjectURL(href),1000);setNotice('Inspection JSON exported.');
   }
   return <div className="app-shell">
-    <header className="app-header"><div className="brand"><span className="brand-mark">V</span><div>VEYRA <span className="brand-sub">INSPECTOR</span></div><span className="version">v0.3.1</span></div><div className="header-status"><span className={`status-dot ${health?.status==='ready'?'ready':''}`}/>{health?.status==='ready'?'Chromium ready':health?'Browser unavailable':'Connecting…'}</div></header>
+    <header className="app-header"><div className="brand"><span className="brand-mark">V</span><div>VEYRA <span className="brand-sub">INSPECTOR</span></div><span className="version">v0.3.2</span></div><div className="header-status"><span className={`status-dot ${health?.status==='ready'?'ready':''}`}/>{health?.status==='ready'?'Chromium ready':health?'Browser unavailable':'Connecting…'}</div></header>
     <main>
       <div className="workspace-heading"><div><span className="eyebrow">WEBSITE INSPECTION ENGINE</span><h1>Look closer.</h1><p>Real elements. Real computed styles.</p></div><span className="mode-badge">{health?.networkMode==='isolated-public'?'ISOLATED PUBLIC SITES':'RESTRICTED DEVELOPMENT'}</span></div>
       <form className="toolbar" onSubmit={open}>

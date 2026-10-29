@@ -12,6 +12,7 @@ export class SyntheticElement {
   getAttribute(k){return this.attrs[k]??null;}
   hasAttribute(k){return Object.hasOwn(this.attrs,k);}
   getRootNode(){return {host:null};}
+  contains(other){for(let n=other;n;n=n.parentElement)if(n===this)return true;return false;}
   getAnimations(){return [];}
   matches(selector){
     if(selector.includes('[contenteditable]')||selector.includes('contenteditable'))return ['input','textarea','select','option'].includes(this.localName)||this.attrs.contenteditable==='true'||this.hasAttribute('data-veyra-private');
@@ -20,7 +21,8 @@ export class SyntheticElement {
   closest(selector){for(let n=this;n;n=n.parentElement)if(n.matches(selector))return n;return null;}
 }
 export const el=(tag,options)=>new SyntheticElement(tag,options);
-export function computed(el) {
+export function computed(el,pseudo=null) {
+  if(pseudo)el={styles:{content:'none',...(el.pseudos?.[pseudo]||{})}};
   const defaults={display:'block',visibility:'visible',opacity:'1','background-color':'rgba(0, 0, 0, 0)','background-image':'none','border-radius':'0px','box-shadow':'none','font-size':'16px','font-family':'Arial','animation-name':'none','transition-duration':'0s'};
   return new Proxy({getPropertyValue:key=>el.styles[key]??defaults[key]??''},{get:(target,key)=>key in target?target[key]:el.styles[String(key).replace(/[A-Z]/g,m=>'-'+m.toLowerCase())]??defaults[String(key).replace(/[A-Z]/g,m=>'-'+m.toLowerCase())]??''});
 }
