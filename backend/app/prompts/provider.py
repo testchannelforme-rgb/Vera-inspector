@@ -66,7 +66,25 @@ class CompatibleProvider:
         payload={'model':c.model,'messages':[{'role':'system','content':SYSTEM},
             {'role':'user','content':json.dumps({'target':request.target,'detail':request.detail,'style':request.style,'untrustedEvidence':evidence},ensure_ascii=True)}],
             c.token_parameter:c.max_tokens,'stream':False}
-        if len(json.dumps(payload).encode())>64000:raise ProviderFailure('input-limit')
+        try:
+            data=await self.complete(payload)
+            choice=data['choices'][0]
+            if choice.get('finish_reason')!='stop':raise ProviderFailure('incomplete-output')
+            result=json.loads(choice['message']['content'])
+            if not isinstance(result,dict) or set(result)!={'objective','implementation','accuracyNotes'}:raise ValueError()
+            for value in result.values():
+                if not isinstance(value,str) or not 40<=len(value)<=1800 or any(ord(ch)<32 and ch not in '\n\t' for ch in value):raise ValueError()
+                if c.key and c.key in value:raise ValueError()
+            return result
+        except ProviderFailure:raise
+        except (ValueError,TypeError,KeyError,IndexError,AttributeError,RecursionError) as exc:raise ProviderFailure('invalid-output') from exc
+
+    async def complete(self, payload, response_limit=64000):
+        c=self.config
+        try:c.validate()
+        except (ValueError,PolicyError) as exc:raise ProviderFailure('configuration') from exc
+        input_limit=64000 if response_limit==64000 else 200000
+        if len(json.dumps(payload).encode())>input_limit:raise ProviderFailure('input-limit')
         gate=EgressProxy(NetworkPolicy(set(),mode='public'),max_connections=2)
         try:
             async with asyncio.timeout(c.timeout):
@@ -82,17 +100,10 @@ class CompatibleProvider:
                         if response.status_code!=200:raise ProviderFailure('http-error')
                         body=bytearray()
                         async for chunk in response.aiter_bytes():
-                            if len(body)+len(chunk)>64000:raise ProviderFailure('output-limit')
+                            if len(body)+len(chunk)>response_limit:raise ProviderFailure('output-limit')
                             body.extend(chunk)
                 data=json.loads(body)
-                choice=data['choices'][0]
-                if choice.get('finish_reason')!='stop':raise ProviderFailure('incomplete-output')
-                result=json.loads(choice['message']['content'])
-                if not isinstance(result,dict) or set(result)!={'objective','implementation','accuracyNotes'}:raise ValueError()
-                for value in result.values():
-                    if not isinstance(value,str) or not 40<=len(value)<=1800 or any(ord(ch)<32 and ch not in '\n\t' for ch in value):raise ValueError()
-                    if c.key and c.key in value:raise ValueError()
-                return result
+                return data
         except ProviderFailure:raise
         except (asyncio.TimeoutError,httpx.TimeoutException) as exc:raise ProviderFailure('timeout') from exc
         except (httpx.HTTPError,OSError,PolicyError) as exc:raise ProviderFailure('connection') from exc

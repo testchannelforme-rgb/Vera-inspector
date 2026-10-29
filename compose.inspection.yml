@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: docker/app.Dockerfile
+      args:
+        VEYRA_REVISION: ${VEYRA_BUILD_REVISION:-unknown}
     environment:
       VEYRA_NETWORK_MODE: isolated-public
       VEYRA_PROXY_SERVER: http://172.30.88.2:8888
@@ -19,8 +21,23 @@ services:
       VEYRA_AI_TIMEOUT_SECONDS: ${VEYRA_AI_TIMEOUT_SECONDS:-15}
       VEYRA_AI_MAX_OUTPUT_TOKENS: ${VEYRA_AI_MAX_OUTPUT_TOKENS:-1500}
       VEYRA_AI_TOKEN_PARAMETER: ${VEYRA_AI_TOKEN_PARAMETER:-max_completion_tokens}
+      VEYRA_CODE_AI_ENABLED: ${VEYRA_CODE_AI_ENABLED:-false}
+      VEYRA_CODE_AI_MODEL: ${VEYRA_CODE_AI_MODEL:-}
+      VEYRA_CODE_AI_API_KEY: ${VEYRA_CODE_AI_API_KEY:-}
+      VEYRA_CODE_AI_ENDPOINT: ${VEYRA_CODE_AI_ENDPOINT:-https://api.openai.com/v1/chat/completions}
+      VEYRA_REFINE_AI_ENABLED: ${VEYRA_REFINE_AI_ENABLED:-false}
+      VEYRA_REFINE_AI_MODEL: ${VEYRA_REFINE_AI_MODEL:-}
+      VEYRA_REFINE_AI_API_KEY: ${VEYRA_REFINE_AI_API_KEY:-}
+      VEYRA_REFINE_AI_ENDPOINT: ${VEYRA_REFINE_AI_ENDPOINT:-https://api.openai.com/v1/chat/completions}
+      VEYRA_OPERATOR_PLAN: ${VEYRA_OPERATOR_PLAN:-free}
+      VEYRA_FREE_GENERATIONS_PER_DAY: ${VEYRA_FREE_GENERATIONS_PER_DAY:-4}
+      VEYRA_FREE_REFINEMENTS_PER_DAY: ${VEYRA_FREE_REFINEMENTS_PER_DAY:-2}
+      VEYRA_FREE_PREVIEWS_PER_DAY: ${VEYRA_FREE_PREVIEWS_PER_DAY:-4}
+      VEYRA_PREMIUM_GENERATIONS_PER_DAY: ${VEYRA_PREMIUM_GENERATIONS_PER_DAY:-50}
+      VEYRA_PREMIUM_REFINEMENTS_PER_DAY: ${VEYRA_PREMIUM_REFINEMENTS_PER_DAY:-50}
+      VEYRA_PREMIUM_PREVIEWS_PER_DAY: ${VEYRA_PREMIUM_PREVIEWS_PER_DAY:-100}
     secrets: [proxy_password, control_token]
-    volumes: [browser_status:/run/veyra:ro]
+    volumes: [browser_status:/run/veyra:ro, studio_usage:/opt/veyra/.veyra-runtime]
     ports: ["127.0.0.1:8001:8000"]
     networks: [control, internet]
     depends_on:
@@ -82,6 +99,7 @@ networks:
   internet: {}
 volumes:
   browser_status: {}
+  studio_usage: {}
 secrets:
   control_token: {file: .veyra-runtime/control_token}
   proxy_password: {file: .veyra-runtime/proxy_password}

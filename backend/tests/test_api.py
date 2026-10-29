@@ -103,7 +103,7 @@ def test_served_frontend_build(client):
 
 def test_codespaces_forwarded_origin():
     manager=BrowserManager(Settings());manager.start=AsyncMock();manager.stop=AsyncMock()
-    settings=Settings(ui_origin='https://my-space-8000.app.github.dev')
+    settings=Settings(ui_origin='https://my-space-8001.app.github.dev')
     with TestClient(create_app(settings,manager)) as client:
         headers={'Origin':settings.ui_origin,'X-Veyra-Client':'inspector-v0.1'}
         assert client.post('/api/sessions/missing/clear',headers=headers).status_code==404
@@ -115,4 +115,4 @@ def test_automatic_codespaces_origin(monkeypatch):
     monkeypatch.delenv('VEYRA_UI_ORIGIN',raising=False)
     monkeypatch.setenv('CODESPACE_NAME','my-space')
     monkeypatch.setenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN','app.github.dev')
-    assert Settings.from_env().ui_origin=='https://my-space-8000.app.github.dev'
+    assert Settings.from_env().ui_origin=='https://my-space-8001.app.github.dev'

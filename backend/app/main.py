@@ -5,7 +5,7 @@ import secrets
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from playwright.async_api import Error as PlaywrightError, TimeoutError as PlaywrightTimeout
 
@@ -20,14 +20,27 @@ from .prompts.schemas import PromptRequest
 from .prompts.service import PromptService
 from .prompts.evidence import collect_evidence, hover_summary
 
+from .studio.service import StudioService
+from .studio.schemas import GenerateRequest, RefineRequest, PreviewRequest
+import subprocess
+
 logger = logging.getLogger('veyra')
 
 
-def create_app(settings=None, manager=None, prompt_service=None):
+def create_app(settings=None, manager=None, prompt_service=None, studio_service=None):
     settings = settings or Settings.from_env()
     manager = manager or BrowserManager(settings)
 
     prompt_service = prompt_service or PromptService()
+    studio = studio_service or StudioService()
+    try:
+        dirty=bool(subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=Path(__file__).resolve().parents[2],stderr=subprocess.DEVNULL,text=True,timeout=2).strip())
+        revision = subprocess.check_output(['git','rev-parse','HEAD'],cwd=Path(__file__).resolve().parents[2],stderr=subprocess.DEVNULL,text=True,timeout=2).strip()
+    except (OSError, subprocess.SubprocessError):
+        dirty=False
+        stamp=Path(__file__).resolve().parents[2]/'BUILD_REVISION'
+        revision=stamp.read_text().strip() if stamp.exists() else 'uncommitted-source'
+
 
     @asynccontextmanager
     async def lifespan(app):
@@ -40,7 +53,7 @@ def create_app(settings=None, manager=None, prompt_service=None):
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.3.3', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.4.0', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -59,21 +72,24 @@ def create_app(settings=None, manager=None, prompt_service=None):
                 if declared < 0: raise ValueError()
             except ValueError:
                 return JSONResponse({'detail':'Invalid Content-Length.'},status_code=400)
-            if declared > 8192:
+            body_limit=220000 if request.url.path in ('/api/studio/refine','/api/studio/preview') else 8192
+            if declared > body_limit:
                 return JSONResponse({'detail':'Request body is too large.'},status_code=413)
             if request.method not in ('GET','HEAD'):
                 body = bytearray()
                 async for chunk in request.stream():
-                    if len(body)+len(chunk)>8192:
+                    if len(body)+len(chunk)>body_limit:
                         return JSONResponse({'detail':'Request body is too large.'},status_code=413)
                     body.extend(chunk)
                 # Starlette replays the bounded cached body to FastAPI's parser.
                 request._body = bytes(body)
         response = await call_next(request)
+        if request.url.path.startswith('/api/studio/render/'):
+            return response
         response.headers.update({
             'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff',
             'Referrer-Policy':'no-referrer', 'X-Frame-Options':'DENY',
-            'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'",
+            'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'",
         })
         return response
 
@@ -106,7 +122,7 @@ def create_app(settings=None, manager=None, prompt_service=None):
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.3.3','prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.4.0','commit':revision,'sourceDirty':dirty,'studio':studio.config(),'prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
                 'schemaVersion':'0.1'}
 
     @app.post('/api/browser/retry')
@@ -209,6 +225,37 @@ def create_app(settings=None, manager=None, prompt_service=None):
             async with manager.operation(body.sessionId) as session:
                 evidence = await collect_evidence(session, body)
             return await prompt_service.generate(evidence, body)
+
+    @app.get('/api/studio/config')
+    async def studio_config():
+        return studio.config()
+
+    @app.post('/api/studio/generate')
+    async def generate_code(body: GenerateRequest):
+        async with studio.admission():
+            async with manager.operation(body.sessionId) as session:
+                evidence=await collect_evidence(session,body)
+            return await studio.generate(evidence,body)
+
+    @app.post('/api/studio/refine')
+    async def refine_code(body: RefineRequest):
+        async with studio.admission():
+            return await studio.refine(body)
+
+    @app.post('/api/studio/preview')
+    async def preview_code(body: PreviewRequest):
+        return await studio.preview(body.project)
+
+    @app.get('/api/studio/render/{token}')
+    async def render_code(token: str):
+        studio.prune()
+        item=studio.previews.get(token)
+        if not item:
+            return HTMLResponse('Preview expired. Refresh it in Code Studio.',status_code=404,
+                                headers={'Content-Security-Policy':"default-src 'none'; sandbox",'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'})
+        return HTMLResponse(item[1],headers={'Content-Security-Policy':item[2],
+            'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
+            'Permissions-Policy':'camera=(), microphone=(), geolocation=(), payment=(), usb=(), clipboard-read=(), clipboard-write=()'})
 
     dist = Path(__file__).resolve().parents[2] / 'frontend' / 'dist'
     if dist.exists():

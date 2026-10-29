@@ -5,6 +5,7 @@ import Icon from './Icon.jsx';
 import Preview from './Preview.jsx';
 import Inspector from './Inspector.jsx';
 import PromptPanel from './PromptPanel.jsx';
+const CodeStudio=React.lazy(()=>import('./CodeStudio.jsx'));
 
 export default function InspectorWorkspace({active=true,replay=0,preferencesEpoch=0}) {
   const [url,setUrl]=useState('https://example.com');
@@ -68,5 +69,6 @@ export default function InspectorWorkspace({active=true,replay=0,preferencesEpoc
         <div data-tour="inspection" className="inspector-wrapper"><Inspector inspection={inspection} busy={busy} onHover={()=>action('hover',{frameId:frame.frameId,durationMs:1000,intervalMs:100})} onClear={()=>action('clear')} onExport={download} onCopy={()=>run(async()=>{if(!navigator.clipboard)throw new Error('Clipboard is unavailable. Use Export JSON.');await navigator.clipboard.writeText(serialized());setNotice('JSON copied to clipboard.');})}/></div>
       </div>
       <PromptPanel preferencesEpoch={preferencesEpoch} session={session} frame={frame} inspection={inspection} busy={busy} aiAvailable={health?.prompts?.aiAvailable} onBusy={setPromptBusy}/>
+      <React.Suspense fallback={<p>Loading Code Studio…</p>}><CodeStudio session={session} frame={frame} inspection={inspection} busy={busy} onBusy={setPromptBusy}/></React.Suspense>
     </div>;
 }

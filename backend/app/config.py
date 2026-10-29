@@ -27,7 +27,7 @@ class Settings:
     def from_env(cls):
         origin=os.getenv('VEYRA_UI_ORIGIN')
         name=os.getenv('CODESPACE_NAME');domain=os.getenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')
-        if not origin and name and domain:origin=f'https://{name}-8000.{domain}'
+        if not origin and name and domain:origin=f'https://{name}-8001.{domain}'
         mode=os.getenv('VEYRA_NETWORK_MODE','restricted')
         if mode not in ('restricted','isolated-public'):
             raise ValueError('VEYRA_NETWORK_MODE must be restricted or isolated-public.')

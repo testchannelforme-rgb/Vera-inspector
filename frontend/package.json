@@ -1,6 +1,6 @@
 {
   "name": "veyra-inspector",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,12 @@
     "test": "node --test tests/*.test.js ../backend/tests/js/*.test.mjs"
   },
   "dependencies": {
+    "@codemirror/lang-css": "6.3.1",
+    "@codemirror/lang-html": "6.4.12",
+    "@codemirror/lang-javascript": "6.2.5",
+    "codemirror": "6.0.2",
+    "esbuild": "0.28.2",
+    "fflate": "0.8.3",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
