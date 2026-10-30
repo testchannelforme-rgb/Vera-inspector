@@ -1,4 +1,12 @@
-# VEYRA AI V0.4.1 — generation fidelity and Charcoal/Sage restoration
+# VEYRA AI V0.4.2 — Blue Hour workspace
+
+Install using **V042_UPDATE.md**. Read **TEST_REPORT_V042.md**, **docs/v042/STORAGE_REPORT.md** and **docs/v042/CHANGELOG.md** for verification and limits.
+
+V0.4.2 adds the approved Blue Hour tokens and supplied official raster logo, independent fullscreen modes, interactive original/generated comparison, stable-ID source navigation, bounded device sizes, local autosave/checkpoints, a redacted error console, actual server progress, keyboard shortcuts and focus mode. It preserves V0.4.1 generation fidelity, inspection, prompts, sandbox previews and exports. Run `python3 scripts/storage-audit.py` in the actual Codespace before setup; local workspace cleanup is not a remote Codespace cleanup.
+
+The optional provider contract remains unchanged. No API key, paid requirement, duplicate Chromium or GPU model is added. Motion 14.8.0 is the only new frontend dependency; its MIT core and reduced-motion settings are documented in docs/MOTION_V042.md. Generated websites never receive Blue Hour or host motion styling.
+
+# Preserved V0.4.1 architecture notes (historical branding and defaults below)
 
 This increment preserves the V0.4 editor, live preview, inspection, prompts and exports. Read **V041_UPDATE.md** for installation, optional AI configuration, comparison/repair behavior, limits and the Git-bundle route. Read **TEST_REPORT_V041.md** for the measured before/after results and unverified deployment checks.
 

@@ -1,22 +1,111 @@
 {
-  "privacy":{"title":"Privacy Policy","intro":"Draft for owner review. This describes the V0.3.3 review candidate’s source-code behavior, not a statement of legal compliance.","sections":[
-    {"title":"What the application processes","paragraphs":["Opening a URL sends that address to the VEYRA backend. The remote Chromium browser requests the target site and its permitted resources. The target site and network providers can receive the browser server’s IP address and request metadata. Inspected sites may set cookies or browser storage inside that temporary browser context; those are separate from this VEYRA interface’s device storage.","The backend keeps session identifiers, remote browser state, screenshots, selected DOM information, sanitized HTML snippets, computed styles, geometry and hover observations in process memory. Inspection JSON exports can contain visible website text and screenshots. Prompt evidence is separately minimized and excludes raw HTML, form values, editable fields, browser storage and signed asset URLs, but visible text and images may still include personal information. Do not inspect sensitive or authenticated content."]},
-    {"title":"Lifetime and copies","paragraphs":["Default source settings expire inspection sessions after 600 seconds total or 180 seconds idle. The application checks these limits during operations and periodic cleanup. Closing a session disposes its browser context; page-close cleanup is best effort. These are runtime limits, not a guarantee covering crash dumps, infrastructure logs or provider copies.","The app has no prompt-history database. Unsaved editor text is held in the page’s memory. Saved versions are optional browser-local data, retained until you delete them, disable history, clear site data or the browser removes them. Downloads are files you control. No retention duration has been supplied for hosting, operational logs or external AI providers; the owner must document those before a finalized policy."]},
-    {"title":"Optional external AI","paragraphs":["Local generation is the default and makes no model-provider request. If the operator has configured and enabled an external AI provider and you deliberately choose AI mode, reduced inspection evidence is sent from the backend to that configured provider. V0.3.3 asks for a per-generation acknowledgement in the interface. A provider timeout or failure falls back to deterministic generation.","Provider identity, processing location, retention terms and any contractual safeguards depend on the operator’s configuration. The owner has not supplied these details. API credentials remain backend configuration; they are not saved with local prompt versions. The history feature itself does not upload saved prompts. Copying or exporting a prompt and using another service is your separate action."]},
-    {"title":"Device storage and logs","paragraphs":["This interface adds no advertising, analytics or third-party tracking scripts and sets no application cookies. It uses only the local preference and optional prompt-history keys listed in Cookie Policy and Data preferences. Hosting or GitHub Codespaces authentication cookies are controlled by those services, not by this frontend.","The backend records startup and unexpected-operation exceptions. The supplied Uvicorn startup uses standard access logging, which can include request paths and session identifiers. Upstream errors may expose addresses in operational logs. This release does not add an analytics or log-upload service. The owner must review hosting logs, access restrictions and log retention."]},
-    {"title":"Your controls and owner information","paragraphs":["Use Data preferences to enable or disable prompt history, delete all saved versions or clear VEYRA’s two local data keys. Clearing local data does not remove downloaded files, clipboard contents, remote browser sessions or provider/hosting records. Close the browser session in the inspector separately.","OWNER REVIEW REQUIRED: responsible operator/legal identity, contact channel, jurisdiction, hosting providers/regions, provider-specific disclosures, log retention and an appropriate rights/request process have not been supplied. No effective date or finalized legal basis is asserted."]}
-  ]},
-  "cookies":{"title":"Cookie Policy","intro":"Draft device-storage inventory. No cookie banner is shown because this build does not add analytics, advertising or optional tracking cookies.","sections":[
-    {"title":"VEYRA interface cookies","paragraphs":["The audited frontend and FastAPI application do not set application cookies. No external analytics, font CDN or marketing tag is loaded by this release. Hosting and authentication services may set their own cookies; the owner must disclose the actual hosting configuration before publication."]},
-    {"title":"Local storage keys","paragraphs":["veyra.preferences.v1 stores only historyEnabled and tutorialDismissed booleans after a preference action, tutorial Skip or Finish. It is a functional device preference, not a user identifier. There is no scheduled expiry; clear it in Data preferences or your browser.","veyra.prompt-history.v1 stores explicit prompt snapshots, a user-editable title, timestamp, local version ID and prompt preferences only when history is enabled and you choose Save Version or Duplicate. No automatic saving occurs. It is limited to 20 versions and 512 KiB total; each prompt is limited to 60,000 characters. No server upload is performed by history operations. These locally saved prompts may contain sensitive information you type; device/browser users may be able to read them."]},
-    {"title":"Remote website storage","paragraphs":["An inspected website may set its own cookies, cache or browser storage in its isolated, nonpersistent Chromium context. Those are not cookies in this VEYRA interface. Context disposal and expiry follow the inspection runtime; the inspected website’s own network-side records are outside VEYRA’s control. No logged-in browser profile is imported."]},
-    {"title":"Change your choices","paragraphs":["History is off until you enable it. Disabling it deletes saved versions on this origin. You can clear VEYRA local data without affecting unrelated application keys. A private browser, storage restriction or quota may prevent saving; the editor reports a failure and keeps its open draft. OWNER REVIEW REQUIRED: review whether additional consent or disclosures are needed for the final deployment and its jurisdiction."]}
-  ]},
-  "terms":{"title":"Terms of Service","intro":"Draft terms for owner review. This review candidate does not ask you to accept a binding agreement; final operator details and legal review are outstanding.","sections":[
-    {"title":"Scope of this candidate","paragraphs":["VEYRA inspects permitted public website renderings and generates text prompts from bounded evidence. It does not generate or execute application code, provide cloud coding, sell subscriptions, process payments or promise exact website recreation. Current public-site browsing requires the supplied isolated browser and gateway; restricted development mode permits only configured hosts."]},
-    {"title":"Authorized use","paragraphs":["Inspect only content you are authorized to access and use. Respect intellectual-property rights, website terms and access controls. Do not use the tool to obtain credentials, bypass authentication, submit third-party forms automatically or inspect sensitive/private information. A supplied asset or visible design is not evidence of a license to copy it."]},
-    {"title":"Review generated material","paragraphs":["Computed CSS, geometry and observed hover data can be incomplete, time-dependent or sanitized. Boundaries and component guidance can be inferred. Unseen sections, breakpoints and interactions remain unknown. Website text and optional AI output are untrusted data; review prompts before giving them to coding tools. No pixel-accuracy, security or accessibility certification is offered."]},
-    {"title":"Availability, local data and optional providers","paragraphs":["This is an unfinished development review candidate. Sessions expire, websites may block automation and local browser data can be removed. Export data you need to keep. Optional provider processing is operator-configured and may have its own quotas or charges; no paid integration is activated by this release."]},
-    {"title":"Owner decisions required","paragraphs":["OWNER REVIEW REQUIRED: legal operator, service contact, governing jurisdiction, eligibility, appropriate responsibility/liability terms, dispute and complaint handling, third-party provider terms and a final effective date have not been supplied. These placeholders must be resolved before any finalized public terms are presented."]}
-  ]}
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "Draft for owner review. This describes V0.4.2 source behavior; no legal-compliance claim is made.",
+    "sections": [
+      {
+        "title": "What the application processes",
+        "paragraphs": [
+          "Opening a URL sends that address to the VEYRA backend. The remote Chromium browser requests the target site and its permitted resources. The target site and network providers can receive the browser server’s IP address and request metadata. Inspected sites may set cookies or browser storage inside that temporary browser context; those are separate from this VEYRA interface’s device storage.",
+          "The backend keeps session identifiers, remote browser state, screenshots, selected DOM information, sanitized HTML snippets, computed styles, geometry and hover observations in process memory. Inspection JSON exports can contain visible website text and screenshots. Prompt evidence is separately minimized and excludes raw HTML, form values, editable fields, browser storage and signed asset URLs, but visible text and images may still include personal information. Do not inspect sensitive or authenticated content."
+        ]
+      },
+      {
+        "title": "Lifetime and copies",
+        "paragraphs": [
+          "Default source settings expire inspection sessions after 600 seconds total or 180 seconds idle. The application checks these limits during operations and periodic cleanup. Closing a session disposes its browser context; page-close cleanup is best effort. These are runtime limits, not a guarantee covering crash dumps, infrastructure logs or provider copies.",
+          "Prompt history is optional and explicitly saved. Code Studio automatically debounces code drafts on this browser origin, with up to five checkpoints plus the current draft and original generation, bounded to 2 MiB. Autosave can be paused. Drafts may be restored after refresh and contain source text you edit. They remain until cleared, replaced under the retention limit, or removed by the browser. Downloads are files you control. Hosting/log/provider retention remains an owner-supplied deployment detail."
+        ]
+      },
+      {
+        "title": "Optional external AI",
+        "paragraphs": [
+          "Local generation is the default and makes no model-provider request. Optional code generation/refinement/repair requires a configured provider and explicit consent to send selected evidence, embedded source images and/or current code. Code-provider failures retain existing code; no successful cloud response is fabricated. Prompt generation retains its labelled local fallback. Comparison screenshots remain local to the backend operation.",
+          "Provider identity, processing location, retention terms and any contractual safeguards depend on the operator’s configuration. The owner has not supplied these details. API credentials remain backend configuration; they are not saved with local prompt versions. The history feature itself does not upload saved prompts. Copying or exporting a prompt and using another service is your separate action."
+        ]
+      },
+      {
+        "title": "Device storage and logs",
+        "paragraphs": [
+          "This interface adds no advertising, analytics or third-party tracking scripts and sets no application cookies. It uses only the local preference and optional prompt-history keys listed in Cookie Policy and Data preferences. Hosting or GitHub Codespaces authentication cookies are controlled by those services, not by this frontend.",
+          "The backend records startup and unexpected-operation exceptions. The supplied Uvicorn startup uses standard access logging, which can include request paths and session identifiers. Upstream errors may expose addresses in operational logs. This release does not add an analytics or log-upload service. The owner must review hosting logs, access restrictions and log retention."
+        ]
+      },
+      {
+        "title": "Your controls and owner information",
+        "paragraphs": [
+          "Use Data preferences to enable or disable prompt history, delete all saved versions or clear VEYRA’s two local data keys. Clearing local data does not remove downloaded files, clipboard contents, remote browser sessions or provider/hosting records. Close the browser session in the inspector separately.",
+          "OWNER REVIEW REQUIRED: responsible operator/legal identity, contact channel, jurisdiction, hosting providers/regions, provider-specific disclosures, log retention and an appropriate rights/request process have not been supplied. No effective date or finalized legal basis is asserted."
+        ]
+      }
+    ]
+  },
+  "cookies": {
+    "title": "Cookie Policy",
+    "intro": "Draft device-storage inventory. No cookie banner is shown because this build does not add analytics, advertising or optional tracking cookies.",
+    "sections": [
+      {
+        "title": "VEYRA interface cookies",
+        "paragraphs": [
+          "The audited frontend and FastAPI application do not set application cookies. No external analytics, font CDN or marketing tag is loaded by this release. Hosting and authentication services may set their own cookies; the owner must disclose the actual hosting configuration before publication."
+        ]
+      },
+      {
+        "title": "Local storage keys",
+        "paragraphs": [
+          "veyra.preferences.v1 stores only historyEnabled and tutorialDismissed booleans after a preference action, tutorial Skip or Finish. It is a functional device preference, not a user identifier. There is no scheduled expiry; clear it in Data preferences or your browser.",
+          "veyra.prompt-history.v1 stores explicit prompt snapshots, a user-editable title, timestamp, local version ID and prompt preferences only when history is enabled and you choose Save Version or Duplicate. No automatic saving occurs. It is limited to 20 versions and 512 KiB total; each prompt is limited to 60,000 characters. No server upload is performed by history operations. These locally saved prompts may contain sensitive information you type; device/browser users may be able to read them.",
+          "veyra.code-studio.v2 stores the current code draft, original generation, active filename and up to five code checkpoints, bounded to 2 MiB. Autosave runs after editing unless paused; no server upload is performed by autosave. Cross-tab conflicts pause saving. Clear it using Data preferences. Code may contain private text; consider shared-device access."
+        ]
+      },
+      {
+        "title": "Remote website storage",
+        "paragraphs": [
+          "An inspected website may set its own cookies, cache or browser storage in its isolated, nonpersistent Chromium context. Those are not cookies in this VEYRA interface. Context disposal and expiry follow the inspection runtime; the inspected website’s own network-side records are outside VEYRA’s control. No logged-in browser profile is imported."
+        ]
+      },
+      {
+        "title": "Change your choices",
+        "paragraphs": [
+          "History is off until you enable it. Disabling it deletes saved versions on this origin. You can clear VEYRA local data without affecting unrelated application keys. A private browser, storage restriction or quota may prevent saving; the editor reports a failure and keeps its open draft. OWNER REVIEW REQUIRED: review whether additional consent or disclosures are needed for the final deployment and its jurisdiction."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "intro": "Draft terms for owner review. This review candidate does not ask you to accept a binding agreement; final operator details and legal review are outstanding.",
+    "sections": [
+      {
+        "title": "Scope of this candidate",
+        "paragraphs": [
+          "VEYRA inspects permitted public website renderings and generates prompts and editable code from bounded evidence. Generated code executes in an isolated development preview with documented limitations. There are no payments or verified paid subscriptions. Public-site inspection still requires the isolated browser and validating gateway; restricted mode permits configured hosts."
+        ]
+      },
+      {
+        "title": "Authorized use",
+        "paragraphs": [
+          "Inspect only content you are authorized to access and use. Respect intellectual-property rights, website terms and access controls. Do not use the tool to obtain credentials, bypass authentication, submit third-party forms automatically or inspect sensitive/private information. A supplied asset or visible design is not evidence of a license to copy it."
+        ]
+      },
+      {
+        "title": "Review generated material",
+        "paragraphs": [
+          "Computed CSS, geometry and observed hover data can be incomplete, time-dependent or sanitized. Boundaries and component guidance can be inferred. Unseen sections, breakpoints and interactions remain unknown. Website text and optional AI output are untrusted data; review prompts before giving them to coding tools. No pixel-accuracy, security or accessibility certification is offered."
+        ]
+      },
+      {
+        "title": "Availability, local data and optional providers",
+        "paragraphs": [
+          "This is an unfinished development review candidate. Sessions expire, websites may block automation and local browser data can be removed. Export data you need to keep. Optional provider processing is operator-configured and may have its own quotas or charges; no paid integration is activated by this release."
+        ]
+      },
+      {
+        "title": "Owner decisions required",
+        "paragraphs": [
+          "OWNER REVIEW REQUIRED: legal operator, service contact, governing jurisdiction, eligibility, appropriate responsibility/liability terms, dispute and complaint handling, third-party provider terms and a final effective date have not been supplied. These placeholders must be resolved before any finalized public terms are presented."
+        ]
+      }
+    ]
+  }
 }

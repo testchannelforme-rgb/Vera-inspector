@@ -5,9 +5,11 @@ import Icon from './Icon.jsx';
 import Preview from './Preview.jsx';
 import Inspector from './Inspector.jsx';
 import PromptPanel from './PromptPanel.jsx';
+import {useFullscreen} from '../fullscreen.js';
 const CodeStudio=React.lazy(()=>import('./CodeStudio.jsx'));
 
 export default function InspectorWorkspace({active=true,replay=0,preferencesEpoch=0}) {
+  const fullscreen=useFullscreen('inspector');
   const [url,setUrl]=useState('https://example.com');
   const [viewport,setViewport]=useState('1280x800');
   const [session,setSession]=useState(null),[frame,setFrame]=useState(null),[inspection,setInspection]=useState(null);
@@ -42,6 +44,8 @@ export default function InspectorWorkspace({active=true,replay=0,preferencesEpoc
   }
   const action=(name,body)=>run(async()=>update(await api(`/sessions/${session}/${name}`,body)));
   const scroll=(p,dy,dx=0)=>action('scroll',{...p,deltaY:dy,deltaX:dx,frameId:frame.frameId});
+  const probe=async p=>{if(!session||busy)return null;return (await api(`/sessions/${session}/hit`,{...p,frameId:frame.frameId})).box;};
+  useEffect(()=>{const listener=()=>fullscreen.toggle();window.addEventListener('veyra:inspector-fullscreen',listener);return()=>window.removeEventListener('veyra:inspector-fullscreen',listener);},[fullscreen.active]);
   const serialized=()=>JSON.stringify(inspection,null,2);
   function download() {
     const blob=new Blob([serialized()],{type:'application/json'}),href=URL.createObjectURL(blob),a=document.createElement('a');
@@ -62,13 +66,14 @@ export default function InspectorWorkspace({active=true,replay=0,preferencesEpoc
       {diagnostics&&<details className="connection-note"><summary>Page diagnostics</summary><pre>{JSON.stringify(diagnostics,null,2)}</pre><button disabled={busy} onClick={()=>run(async()=>{await navigator.clipboard.writeText(JSON.stringify(diagnostics,null,2));setNotice('Diagnostics copied.');})}>Copy diagnostics</button></details>}
       <div className="notice" role="status" aria-live="polite">{notice|| (busy?'Waiting for the remote browser…':'Select without clicking links or submitting forms on the inspected site.')}</div>
       <div className="workspace">
-        <section className="preview-panel" aria-label="Website preview" data-tour="preview"><div className="panel-title">Website preview <div className="preview-actions"><button disabled={!session||busy} onClick={()=>action('refresh')}>Refresh image</button><button disabled={!session||busy} onClick={()=>scroll({x:frame.viewport.width/2,y:frame.viewport.height/2},-500)}>↑ Scroll</button><button disabled={!session||busy} onClick={()=>scroll({x:frame.viewport.width/2,y:frame.viewport.height/2},500)}>↓ Scroll</button><button disabled={!session||busy} onClick={()=>run(async()=>{await api('/sessions/'+session,undefined,'DELETE');setSession(null);setFrame(null);setInspection(null);setNotice('Session closed.');})}>Close</button></div></div>
-          <Preview onImageError={message=>{setError(message);setDiagnostics(d=>({...d,screenshotTransfer:"decode-failed"}));}} frame={frame} inspection={inspection} busy={busy} onSelect={point=>action('select',{...point,frameId:frame.frameId})} onScroll={scroll}/>
+        <section ref={fullscreen.ref} className={"preview-panel"+fullscreen.className} aria-label="Website preview" data-tour="preview"><div className="panel-title">Website preview <div className="preview-actions"><button onClick={fullscreen.toggle} type="button">{fullscreen.active?'Exit inspector fullscreen':'Fullscreen inspector'}</button><button disabled={!session||busy} onClick={()=>action('refresh')}>Refresh image</button><button disabled={!session||busy} onClick={()=>scroll({x:frame.viewport.width/2,y:frame.viewport.height/2},-500)}>↑ Scroll</button><button disabled={!session||busy} onClick={()=>scroll({x:frame.viewport.width/2,y:frame.viewport.height/2},500)}>↓ Scroll</button><button disabled={!session||busy} onClick={()=>run(async()=>{await api('/sessions/'+session,undefined,'DELETE');setSession(null);setFrame(null);setInspection(null);setNotice('Session closed.');})}>Close</button></div></div>
+          {fullscreen.active&&error&&<div role="alert" className="error">{error}</div>}
+          <Preview onImageError={message=>{setError(message);setDiagnostics(d=>({...d,screenshotTransfer:"decode-failed"}));}} frame={frame} inspection={inspection} busy={busy} onProbe={probe} onSelect={point=>action('select',{...point,frameId:frame.frameId})} onScroll={scroll}/>
           {!!frame?.warnings?.length&&<div className="warnings" role="status">Preview notes: {frame.warnings.join(' ')}</div>}
         </section>
         <div data-tour="inspection" className="inspector-wrapper"><Inspector inspection={inspection} busy={busy} onHover={()=>action('hover',{frameId:frame.frameId,durationMs:1000,intervalMs:100})} onClear={()=>action('clear')} onExport={download} onCopy={()=>run(async()=>{if(!navigator.clipboard)throw new Error('Clipboard is unavailable. Use Export JSON.');await navigator.clipboard.writeText(serialized());setNotice('JSON copied to clipboard.');})}/></div>
       </div>
       <PromptPanel preferencesEpoch={preferencesEpoch} session={session} frame={frame} inspection={inspection} busy={busy} aiAvailable={health?.prompts?.aiAvailable} onBusy={setPromptBusy}/>
-      <React.Suspense fallback={<p>Loading Code Studio…</p>}><CodeStudio session={session} frame={frame} inspection={inspection} busy={busy} onBusy={setPromptBusy}/></React.Suspense>
+      <React.Suspense fallback={<p>Loading Code Studio…</p>}><CodeStudio originalError={error} originalActions={{select:p=>action('select',{...p,frameId:frame.frameId}),scroll,probe,resize:v=>action('viewport',{frameId:frame.frameId,viewport:v}),refresh:()=>action('refresh')}} session={session} frame={frame} inspection={inspection} busy={busy} onBusy={setPromptBusy}/></React.Suspense>
     </div>;
 }

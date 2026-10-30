@@ -11,7 +11,7 @@ export default function App(){
   const main=useRef(null),lastPage=useRef(route.page);
   useEffect(()=>{const change=()=>{const next=routeFromHash(window.location.hash);setRoute(next);setMenu(false);if(next.page==='inspector')setVisited(true);};window.addEventListener('hashchange',change);return()=>window.removeEventListener('hashchange',change);},[]);
   useEffect(()=>{
-    const names={inspector:'Inspector',privacy:'Draft Privacy Policy',cookies:'Draft Cookie Policy',terms:'Draft Terms',about:'About',contact:'Contact',preferences:'Data preferences',brand:'Logo concepts'};
+    const names={inspector:'Inspector',privacy:'Draft Privacy Policy',cookies:'Draft Cookie Policy',terms:'Draft Terms',about:'About',contact:'Contact',preferences:'Data preferences',brand:'Official logo'};
     document.title=route.page?`${names[route.page]||'Page not found'} · VEYRA AI`:'VEYRA AI — See the detail. Build the vision.';
     if(route.section&&['features','how-it-works','faq'].includes(route.section)){document.getElementById(route.section)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
     else if(lastPage.current!==route.page){main.current?.focus({preventScroll:true});window.scrollTo({top:0,left:0,behavior:"instant"});}
@@ -23,6 +23,6 @@ export default function App(){
       {visited&&<InspectorWorkspace active={route.page==='inspector'} replay={replay} preferencesEpoch={preferencesEpoch}/>}
       {route.page==='preferences'&&<DataPreferences onChange={()=>setPreferencesEpoch(n=>n+1)}/>}
       {!['','inspector','preferences'].includes(route.page)&&<InfoPage key={route.page} page={route.page}/>}
-    </main><footer className="site-footer"><div><a className="brand-home" href="#/"><Brand compact/></a><p>See the detail. Build the vision.</p></div><div className="footer-links"><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/privacy">Privacy · draft</a><a href="#/cookies">Cookies · draft</a><a href="#/terms">Terms · draft</a><a href="#/preferences">Data preferences</a><a href="#/brand">Logo concepts</a></div><div className="footer-note"><span>VEYRA AI · V0.4.1 · Code Studio</span><span>Branding, design and policies await owner approval.</span></div></footer>
+    </main><footer className="site-footer"><div><a className="brand-home" href="#/"><Brand compact/></a><p>See the detail. Build the vision.</p></div><div className="footer-links"><a href="#/about">About</a><a href="#/contact">Contact</a><a href="#/privacy">Privacy · draft</a><a href="#/cookies">Cookies · draft</a><a href="#/terms">Terms · draft</a><a href="#/preferences">Data preferences</a><a href="#/brand">Official logo</a></div><div className="footer-note"><span>VEYRA AI · V0.4.2 · Code Studio</span><span>Branding, design and policies await owner approval.</span></div></footer>
   </div>;
 }

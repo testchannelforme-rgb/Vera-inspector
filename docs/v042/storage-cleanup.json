@@ -1,0 +1,16 @@
+{
+  "location": "available Work workspace; owner Codespace not mounted",
+  "before": {
+    "total": 33770192896,
+    "used": 2575896576,
+    "free": 29459533824
+  },
+  "after": {
+    "total": 33770192896,
+    "used": 2573832192,
+    "free": 29461598208
+  },
+  "recoveredBytes": 2064384,
+  "target50PercentFree": true,
+  "actions": "REMOVE .pytest_cache (48,644 bytes)\nREMOVE frontend/dist (927,355 bytes)\nREMOVE backend/app/__pycache__ (106,931 bytes)\nREMOVE backend/tests/__pycache__ (574,567 bytes)\nREMOVE backend/app/prompts/__pycache__ (104,795 bytes)\nREMOVE backend/app/studio/__pycache__ (70,212 bytes)\nDisposable total: 1,832,504 bytes. Free disk: 29,461,598,208 bytes.\n"
+}

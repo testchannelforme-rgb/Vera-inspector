@@ -33,7 +33,16 @@ class StudioService:
         if db!=':memory:':Path(db).parent.mkdir(parents=True,exist_ok=True)
         self.db=sqlite3.connect(db,check_same_thread=False)
         self.db.execute('CREATE TABLE IF NOT EXISTS usage(day TEXT, task TEXT, count INTEGER, PRIMARY KEY(day,task))');self.db.commit()
-        self.lock=asyncio.Lock();self.records={};self.previews={}
+        self.lock=asyncio.Lock();self.records={};self.previews={};self.progress={}
+
+    def stage(self, request_id, stage):
+        if not request_id:return
+        now=time.monotonic()
+        self.progress={k:v for k,v in self.progress.items() if now-v['at']<180}
+        if request_id not in self.progress and len(self.progress)>=32:self.progress.pop(next(iter(self.progress)))
+        value=self.progress.setdefault(request_id,{'at':now,'events':[]})
+        if len(value['events'])<20:value['events'].append({'stage':stage})
+        value['at']=now
 
     def config(self):
         return {'plan':self.plan,'scope':'single-operator deployment; not multi-user billing','generationLimit':self.generation_limit,'refinementLimit':self.refine_limit,'previewLimit':self.preview_limit,'localRendersMetered':False,
@@ -63,12 +72,14 @@ class StudioService:
         if request.mode=='auto' and (not request.consent or not self.provider.config.available):
             raise SessionError('AI requires a configured provider and explicit permission to send the selected evidence.',503 if request.consent else 422,'studio-ai-unavailable')
         if request.autoRepair and (not request.consent or not self.repairer.config.available):raise SessionError('Automatic repair requires configured repair AI and explicit consent.',422,'repair-unavailable')
+        self.stage(request.requestId,'Analyzing')
         self.charge('generation',self.generation_limit)
         # Existing collector redaction and ancestor admission stay authoritative.
         from ..prompts.selection import selection_plan
         context=dict(evidence)
         context['nodes'],sample=selection_plan(evidence['nodes'],55)
         context['truncated']=evidence.get('truncated',False) or sample['omitted']>0
+        self.stage(request.requestId,'Generating')
         project,warnings=reconstruct(context,request.format);usage={};summary='Measured local reconstruction';mode='local';model_used=None
         if request.mode=='auto':
             try:
@@ -78,11 +89,14 @@ class StudioService:
                 project.files['README.md']=project.files.get('README.md','').replace('- Local measured reconstruction; no AI model was called.','- AI-assisted recreation. Review all generated code before running or publishing.')
             except ProviderFailure as exc:raise SessionError('AI code generation failed ('+exc.reason+'). No retry was made; existing code is preserved.',502,'studio-provider-failed') from None
             except ValueError:raise SessionError('AI returned an invalid project. Existing code is preserved.',422,'code-invalid') from None
+        self.stage(request.requestId,'Validating')
         await compile_project(project)
         comparison={'available':False,'reason':'No reference or protected comparison browser.'};repair={'attempts':0,'accepted':False}
         if reference and self.comparator:
+            self.stage(request.requestId,'Rendering')
             comparison=await self.comparator.render(project,reference)
             if request.autoRepair and comparison.get('available') and comparison['loss']>0:
+                self.stage(request.requestId,'Refining')
                 repair['attempts']=1
                 try:
                     self.charge('refinement',self.refine_limit)
@@ -100,9 +114,10 @@ class StudioService:
                 except Exception as exc:
                     repair['reason']='Repair rejected or unavailable: '+type(exc).__name__
                     warnings.append('Automatic repair failed validation or comparison; the prior valid project was kept.')
+        self.stage(request.requestId,'Complete')
         self.prune();ident=secrets.token_hex(16)
         self.records[ident]={'created':time.monotonic(),'evidence':context,'format':project.format}
-        return {'generationId':ident,'project':project.model_dump(),'mode':mode,'summary':summary,'warnings':warnings,'usage':usage,'model':model_used,'modifiedFiles':list(project.files),'comparison':comparison,'repair':repair,'diagnostics':{'includedNodes':len(context['nodes']),'omittedNodes':sample['omitted'],'pixelComparison':'not performed','assets':'URLs omitted; placeholders used','expected':[{ 'id':n['id'],'width':n.get('box',{}).get('width'),'height':n.get('box',{}).get('height'),'fontSize':n.get('styles',{}).get('font-size'),'color':n.get('styles',{}).get('color')} for n in context['nodes']]}}
+        return {'generationId':ident,'project':project.model_dump(),'mode':mode,'summary':summary,'warnings':warnings,'usage':usage,'model':model_used,'modifiedFiles':list(project.files),'progress':self.progress.get(request.requestId,{}).get('events',[]),'comparison':comparison,'repair':repair,'diagnostics':{'includedNodes':len(context['nodes']),'omittedNodes':sample['omitted'],'pixelComparison':'not performed','assets':'URLs omitted; placeholders used','expected':[{ 'id':n['id'],'width':n.get('box',{}).get('width'),'height':n.get('box',{}).get('height'),'fontSize':n.get('styles',{}).get('font-size'),'color':n.get('styles',{}).get('color')} for n in context['nodes']]}}
 
     async def refine(self,request):
         self.prune();record=self.records.get(request.generationId)
@@ -121,6 +136,6 @@ class StudioService:
         return {'project':project.model_dump(),'generationId':request.generationId,'modifiedFiles':modified,'summary':answer['summary'][:500],'mode':'ai','model':self.refiner.config.model,'usage':usage,'warnings':[]}
 
     async def preview(self,project):
-        js=await compile_project(project);doc,csp=document(project,js)
+        js=await compile_project(project);bridge_token=secrets.token_hex(24);doc,csp=document(project,js,bridge_token)
         self.prune();ident=secrets.token_hex(24);self.previews[ident]=(time.monotonic(),doc,csp)
-        return {'url':'/api/studio/render/'+ident,'expiresInSeconds':600,'metered':False}
+        return {'url':'/api/studio/render/'+ident,'expiresInSeconds':600,'metered':False,'bridgeToken':bridge_token}

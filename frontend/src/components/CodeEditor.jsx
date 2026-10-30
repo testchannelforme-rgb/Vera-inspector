@@ -1,9 +1,9 @@
 import React,{useEffect,useRef} from 'react';
 
 // One editor at a time; language packages load only when Code Studio opens a file.
-export default function CodeEditor({name,value,onChange,disabled=false}){
- const host=useRef(null),view=useRef(null),latest=useRef(value),change=useRef(onChange),[fallback,setFallback]=React.useState(false);
- change.current=onChange;latest.current=value;
+export default function CodeEditor({name,value,onChange,disabled=false,location=null}){
+ const host=useRef(null),view=useRef(null),latest=useRef(value),locationRef=useRef(location),change=useRef(onChange),[fallback,setFallback]=React.useState(false);
+ change.current=onChange;latest.current=value;locationRef.current=location;
  useEffect(()=>{
   if(!host.current)return;
   let cancelled=false;
@@ -12,9 +12,12 @@ export default function CodeEditor({name,value,onChange,disabled=false}){
    const lang=name.endsWith('.css')?css():name.endsWith('.html')?html():javascript({jsx:name.endsWith('.jsx')});
    const editor=new EditorView({parent:host.current,state:EditorState.create({doc:latest.current,extensions:[cm.basicSetup,lang,syntaxHighlighting(HighlightStyle.define([{tag:[tags.keyword,tags.operator,tags.typeName],color:'var(--brand-sage)'},{tag:[tags.string,tags.number,tags.comment],color:'var(--muted-text)'},{tag:tags.name,color:'var(--text)'}])),EditorState.readOnly.of(disabled),EditorView.editable.of(!disabled),EditorView.contentAttributes.of({'aria-label':'Code editor '+name}),EditorView.updateListener.of(update=>{if(update.docChanged)change.current(update.state.doc.toString());}),EditorView.theme({'&':{height:'100%',fontSize:'13px'},'.cm-scroller':{overflow:'auto',fontFamily:'ui-monospace, monospace'},'.cm-content':{minHeight:'420px'},'&.cm-focused':{outline:'2px solid var(--brand-sage)'}},{dark:true})]})});
    view.current=editor;
+   const mark=locationRef.current;
+   if(mark){const from=Math.min(mark.from,editor.state.doc.length),to=Math.min(mark.to,editor.state.doc.length);editor.dispatch({selection:{anchor:from,head:to},effects:EditorView.scrollIntoView(from,{y:'center'})});editor.focus();}
   }).catch(()=>{if(!cancelled)setFallback(true);});
   return()=>{cancelled=true;view.current?.destroy();view.current=null;};
  },[name,disabled]);
  useEffect(()=>{const v=view.current;if(v&&v.state.doc.toString()!==value)v.dispatch({changes:{from:0,to:v.state.doc.length,insert:value}});},[value]);
+ useEffect(()=>{const v=view.current;if(v&&location){const from=Math.min(location.from,v.state.doc.length),to=Math.min(location.to,v.state.doc.length);v.dispatch({selection:{anchor:from,head:to},scrollIntoView:true});v.focus();}},[location]);
  return <div className="code-editor-host">{fallback?<textarea aria-label={'Code editor '+name} spellCheck="false" value={value} disabled={disabled} onChange={e=>onChange(e.target.value)}/>:<div ref={host} className="codemirror-host"/>}</div>;
 }

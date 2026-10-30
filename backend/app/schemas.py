@@ -20,6 +20,10 @@ class FrameRequest(StrictModel):
     frameId: str = Field(min_length=1, max_length=64)
 
 
+class ResizeRequest(FrameRequest):
+    viewport: Viewport
+
+
 class PointRequest(FrameRequest):
     # These are remote viewport CSS pixels, never physical device pixels.
     x: float = Field(ge=0, le=1440)

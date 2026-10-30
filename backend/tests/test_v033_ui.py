@@ -60,10 +60,10 @@ async def test_candidate_navigation_tutorial_legal_and_responsive_screenshots(br
                     await page.locator('#main-navigation').get_by_role('link',name='About',exact=True).click()
                     await expect(page.get_by_role('heading',level=1)).to_have_text('Make the details useful.')
                     await no_overflow(page)
-            for path,title in [('privacy','Privacy Policy'),('cookies','Cookie Policy'),('terms','Terms of Service'),('about','Make the details useful.'),('contact','Help shape the next iteration.'),('preferences','Data preferences'),('brand','Three ways to see VEYRA.')]:
+            for path,title in [('privacy','Privacy Policy'),('cookies','Cookie Policy'),('terms','Terms of Service'),('about','Make the details useful.'),('contact','Help shape the next iteration.'),('preferences','Data preferences'),('brand','Blue Hour. The original mark.')]:
                 await page.goto(base+'/#/'+path);await expect(page.get_by_role('heading',level=1)).to_have_text(title);await no_overflow(page)
                 if path in ('privacy','cookies','terms'):await expect(page.get_by_text('DRAFT · OWNER REVIEW REQUIRED',exact=True)).to_be_visible()
-                if path=='brand':assert await page.locator('.logo-options img').count()==3
+                if path=='brand':assert await page.locator('img[alt="Official VEYRA V and ascending A mark"]').count()==1
             await page.set_viewport_size({'width':1440,'height':1000});await page.goto(base+'/#/brand')
             await page.screenshot(path=str(SHOTS/'logo-concepts.png'),full_page=True)
             await page.locator('.footer-links').get_by_role('link',name='About',exact=True).click()

@@ -13,7 +13,7 @@ from .animation import capture_hover
 from .browser_manager import BrowserManager, SessionError
 from .config import Settings
 from .inspector import HIT_TEST_JS, inspect_element
-from .schemas import OpenRequest, PointRequest, ScrollRequest, FrameRequest, HoverRequest
+from .schemas import OpenRequest, PointRequest, ScrollRequest, FrameRequest, HoverRequest, ResizeRequest
 from .security import PolicyError, normalize_url
 from .diagnostics import startup_diagnostic
 from .prompts.schemas import PromptRequest
@@ -56,7 +56,7 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
         yield
         await manager.stop()
 
-    app = FastAPI(title='Veyra Inspector', version='0.4.1', lifespan=lifespan,
+    app = FastAPI(title='Veyra Inspector', version='0.4.2', lifespan=lifespan,
                   docs_url=None, redoc_url=None)
     app.state.manager = manager
     app.state.startup_error = None
@@ -125,7 +125,7 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
     @app.get('/api/health')
     async def health():
         return {'status':'ready' if manager.browser and manager.browser.is_connected() else 'browser-unavailable',
-                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.4.1','commit':revision,'sourceDirty':dirty,'studio':studio.config(),'prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
+                'detail':app.state.startup_error, 'allowedHosts':sorted(settings.allowed_hosts),'networkMode':settings.network_mode,'version':'0.4.2','commit':revision,'sourceDirty':dirty,'studio':studio.config(),'prompts':{'aiAvailable':prompt_service.config.available,'defaultMode':'local','version':'0.3'},
                 'schemaVersion':'0.1'}
 
     @app.post('/api/browser/retry')
@@ -192,6 +192,25 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
             session.reference_id = secrets.token_hex(12)
             return await result(session, await inspect_element(session))
 
+    @app.post('/api/sessions/{token}/viewport')
+    async def resize_viewport(token: str,body: ResizeRequest):
+        async with manager.operation(token) as session:
+            session.check_frame(body.frameId)
+            await session.page.set_viewport_size(body.viewport.model_dump())
+            inspection=await inspect_element(session) if session.element else None
+            return await result(session,inspection)
+
+    @app.post('/api/sessions/{token}/hit')
+    async def hit_element(token: str,body: PointRequest):
+        async with manager.operation(token) as session:
+            if body.frameId!=session.frame_id:return {'box':None}
+            session.check_point(body.x,body.y)
+            handle=await session.page.evaluate_handle(HIT_TEST_JS,{'x':body.x,'y':body.y})
+            try:
+                el=handle.as_element()
+                return {'box':await el.bounding_box() if el else None}
+            finally:await handle.dispose()
+
     @app.post('/api/sessions/{token}/scroll')
     async def scroll(token: str, body: ScrollRequest):
         async with manager.operation(token) as session:
@@ -233,14 +252,25 @@ def create_app(settings=None, manager=None, prompt_service=None, studio_service=
     async def studio_config():
         return studio.config()
 
+    @app.get('/api/studio/progress/{request_id}')
+    async def studio_progress(request_id: str):
+        import time
+        item=studio.progress.get(request_id)
+        return {'events':item['events'] if item and time.monotonic()-item['at']<180 else []}
+
     @app.post('/api/studio/generate')
     async def generate_code(body: GenerateRequest):
-        async with studio.admission():
-            async with manager.operation(body.sessionId) as session:
-                evidence=await collect_evidence(session,body)
-                await embed_assets(session,evidence)
-                reference=await capture_reference(session,evidence)
-            return await studio.generate(evidence,body,reference)
+        try:
+            async with studio.admission():
+                studio.stage(body.requestId,'Inspecting')
+                async with manager.operation(body.sessionId) as session:
+                    evidence=await collect_evidence(session,body)
+                    await embed_assets(session,evidence)
+                    reference=await capture_reference(session,evidence)
+                return await studio.generate(evidence,body,reference)
+        except Exception:
+            studio.stage(body.requestId,'Failed')
+            raise
 
     @app.post('/api/studio/refine')
     async def refine_code(body: RefineRequest):

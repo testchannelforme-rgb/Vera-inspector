@@ -30,6 +30,7 @@ class GenerateRequest(PromptRequest):
     format: Literal['vanilla', 'react'] = 'vanilla'
     consent: bool = False
     autoRepair: bool = False
+    requestId: str | None = Field(default=None,pattern=r'^[a-f0-9]{32}$')
 
 class RefineRequest(StrictModel):
     generationId: str = Field(pattern=r'^[a-f0-9]{32}$')

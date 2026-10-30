@@ -63,5 +63,5 @@ export function duplicateVersion(id,storage=browserStorage()){
 }
 export function clearLocalData(storage=browserStorage()){
   if(!storage)throw new Error('Browser storage is unavailable.');
-  try {storage.removeItem(HISTORY_KEY);storage.removeItem(PREFERENCES_KEY);}catch{throw new Error('Could not clear app data. Use your browser site-data settings.');}
+  try {storage.removeItem(HISTORY_KEY);storage.removeItem(PREFERENCES_KEY);storage.removeItem('veyra.code-studio.v2');}catch{throw new Error('Could not clear app data. Use your browser site-data settings.');}
 }

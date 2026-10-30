@@ -1,10 +1,12 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {overlayStyle,toViewport} from '../coordinates.js';
 
-export default function Preview({frame,inspection,busy,onSelect,onScroll,onImageError}) {
+export default function Preview({frame,inspection,busy,onSelect,onScroll,onImageError,onProbe}) {
   const image=useRef(null),gesture=useRef(null),actions=useRef({});
-  const [decodedFrame,setDecodedFrame]=useState(null);
+  const [decodedFrame,setDecodedFrame]=useState(null),[hoverBox,setHoverBox]=useState(null);
+  const probe=useRef(null),probing=useRef(false),probeEpoch=useRef(0);
   const frameId=frame?.frameId;
+  useEffect(()=>{probeEpoch.current++;setHoverBox(null);return()=>clearTimeout(probe.current);},[frameId]);
   const imageError=useRef(onImageError);imageError.current=onImageError;
   const waitingForImage=!!frame && decodedFrame!==frameId;
   const disabled=busy||waitingForImage;
@@ -43,7 +45,11 @@ export default function Preview({frame,inspection,busy,onSelect,onScroll,onImage
         if(disabled)return;
         gesture.current={x:e.clientX,y:e.clientY,p:point(e)};
         e.currentTarget.setPointerCapture(e.pointerId);
-      }} onPointerCancel={()=>{gesture.current=null;}} onPointerUp={e=>{
+      }} onPointerMove={e=>{
+        if(disabled||gesture.current||!onProbe)return;
+        const p=point(e),token=probeEpoch.current;clearTimeout(probe.current);
+        probe.current=setTimeout(async()=>{if(probing.current)return;probing.current=true;try{const box=await onProbe(p);if(token===probeEpoch.current)setHoverBox(box);}catch{}finally{probing.current=false;}},180);
+      }} onPointerLeave={()=>{clearTimeout(probe.current);setHoverBox(null);}} onPointerCancel={()=>{gesture.current=null;}} onPointerUp={e=>{
         if(!gesture.current||disabled)return;
         const start=gesture.current;gesture.current=null;
         const dx=start.x-e.clientX,dy=start.y-e.clientY;
@@ -54,6 +60,7 @@ export default function Preview({frame,inspection,busy,onSelect,onScroll,onImage
         if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect({x:frame.viewport.width/2,y:frame.viewport.height/2});}
         if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();onScroll({x:frame.viewport.width/2,y:frame.viewport.height/2},e.key==='ArrowDown'?300:-300,0);}
       }}/>
+      {hoverBox&&!disabled&&<div className="hover-overlay" style={overlayStyle(hoverBox,frame.viewport)}/>}
       {inspection&&<div data-testid="selection-overlay" className="selection-overlay" style={overlayStyle(inspection.geometry,frame.viewport)}><span>{inspection.element.tagName} · {Math.round(inspection.geometry.width)} × {Math.round(inspection.geometry.height)}</span></div>}
       {disabled&&<div className="preview-busy"><span className="spinner"/> Updating preview</div>}
     </div>

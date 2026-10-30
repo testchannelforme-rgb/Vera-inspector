@@ -68,7 +68,7 @@ class SafeMarkup(HTMLParser):
         self.handle_starttag(tag,attrs)
         if tag not in self.void:self.handle_endtag(tag)
 
-def document(project,js):
+def document(project,js,bridge_token=None):
     nonce=secrets.token_urlsafe(24)
     csp=f"default-src 'none'; script-src 'nonce-{nonce}'; style-src 'unsafe-inline'; img-src data:; font-src 'none'; connect-src 'none'; media-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; sandbox allow-scripts; frame-ancestors 'self'"
     parser=SafeMarkup();parser.feed(project.files['index.html'])
@@ -77,4 +77,6 @@ def document(project,js):
     js=js.replace('</','<\\/')
     css=project.files['style.css'].replace('<','\\3c ')
     bridge="""addEventListener('error',e=>parent.postMessage({type:'veyra-preview-error',message:String(e.message).slice(0,600)},'*'));addEventListener('unhandledrejection',e=>parent.postMessage({type:'veyra-preview-error',message:String(e.reason).slice(0,600)},'*'));addEventListener('click',e=>{const a=e.target.closest('a');if(a&&!a.getAttribute('href')?.startsWith('#'))e.preventDefault();});setTimeout(()=>parent.postMessage({type:'veyra-preview-metrics',overflow:document.documentElement.scrollWidth>innerWidth,nodes:Array.from(document.querySelectorAll('[data-veyra-node]')).slice(0,55).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {id:Number(e.dataset.veyraNode),width:r.width,height:r.height,fontSize:s.fontSize,color:s.color}})},'*'),120);"""
-    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body>'+markup+'<script nonce="'+nonce+'">'+bridge+'</script><script nonce="'+nonce+'">'+js+'</script></body></html>',csp
+    instrumentation=(Path(__file__).with_name('bridge.js').read_text().replace('__BRIDGE_TOKEN__',json.dumps(bridge_token or 'disabled')))
+    bridge+=instrumentation
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><script nonce="'+nonce+'">'+bridge+'</script>'+markup+'<script nonce="'+nonce+'">'+js+'</script></body></html>',csp

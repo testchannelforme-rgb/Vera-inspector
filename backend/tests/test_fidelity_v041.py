@@ -35,7 +35,7 @@ def test_specification_and_brand_separation():
     assert spec['schema']=='veyra-reconstruction/2' and spec['nodes']==e['nodes']
     p,_=reconstruct(e,'react');assert 'rgb(20, 80, 30)' in p.files['style.css']
     assert '#A8B89A' not in p.files['style.css']
-    css=Path('frontend/src/theme.css').read_text();assert '#2E3138' in css and '#A8B89A' in css
+    css=Path('frontend/src/theme.css').read_text();assert '#081529' in css and '#A7CEFF' in css
 
 @pytest.mark.parametrize('fmt',['vanilla','react'])
 async def test_measured_baseline_comparison(fixture_site,monkeypatch,fmt):
@@ -75,8 +75,8 @@ async def test_real_render_repair_and_brand(fixture_site,monkeypatch):
         assert result['repair']['accepted'] and result['repair']['after']['loss']<result['repair']['before']['loss']
         context=await manager.browser.new_context();page=await context.new_page();await page.goto(base)
         primary=page.locator('.primary').first
-        assert await primary.evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(168, 184, 154)'
-        assert await page.evaluate('getComputedStyle(document.documentElement).backgroundColor')=='rgb(46, 49, 56)'
+        assert await primary.evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(167, 206, 255)'
+        assert await page.evaluate('getComputedStyle(document.documentElement).backgroundColor')=='rgb(8, 21, 41)'
         if os.getenv('STUDIO_SHOTS_DIR'):
             await page.screenshot(path=os.environ['STUDIO_SHOTS_DIR']+'/v041-brand.png',full_page=True)
         await context.close()

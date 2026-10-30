@@ -125,7 +125,9 @@ async def test_offline_studio_full_flow(fixture_site,monkeypatch,tmp_path,fmt):
         await studio.get_by_role('button',name='style.css',exact=True).click()
         await expect(studio.get_by_role('textbox',name='Code editor style.css')).to_contain_text('rgb(180, 20, 30)')
         await studio.get_by_role('button',name='Reset generated code').click()
+        await studio.get_by_role('button',name='Confirm restore',exact=True).click()
         await studio.get_by_role('button',name='Restore previous').click()
+        await studio.get_by_role('button',name='Confirm restore',exact=True).click()
         await expect(studio.get_by_role('textbox',name='Code editor style.css')).to_contain_text('rgb(180, 20, 30)')
         for width in [1024,768,390]:
             await page.set_viewport_size({'width':width,'height':900})
